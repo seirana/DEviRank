@@ -222,8 +222,6 @@ To ensure reproducibility:
 * sampling sizes are configurable
 * intermediate results are logged
 
-Exact commands and configurations are documented in the `experiments/` directory.
-
 ---
 
 ## 📄 Citation
@@ -231,7 +229,7 @@ Exact commands and configurations are documented in the `experiments/` directory
 If you use DEviRank in your research, please cite:
 
 ```
-[To be added after publication]
+[Will be added after publication]
 ```
 
 ---
