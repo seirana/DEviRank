@@ -47,17 +47,18 @@ Unlike end-to-end learning approaches, DEviRank emphasizes **interpretability, b
 ```
 DEviRank/
 │
-├── src/                    # Core implementation
-│   ├── ppi_network.py      # PPI graph construction and utilities
-│   ├── devi_rank.py        # DEviRank scoring algorithm
-│   ├── path_enum.py        # Simple-path enumeration (L ≤ 3)
-│   ├── random_sampling.py # Degree-preserving random sampling
-│   └── utils.py            # Helper functions
+├── src/
+│   ├── DEviRank.py  
 │
 ├── data/
-│   ├── ppi/                # PPI network files (not included if restricted)
-│   ├── drug_gene/          # Drug–gene interaction data
-│   └── disease_genes/      # Disease-associated gene sets
+│   ├── disease_target_genes.csv/
+│   ├── drugs(filtered).csv/ 
+│   ├── drugs_links.csv/ 
+│   ├── DtoDGI_ENSEMBL(filtered).csve/ 
+│   ├── DtoGI_scores(filtered).csv/
+│   ├── gene_gene_PPI700_ENSEMBL.csv/
+│   ├── protein_coding_genes_ENSEMBL.csv        
+│   └── repeated(filtered).csv /      
 │
 ├── experiments/
 │   ├── run_devirank.py     # Main experiment runner
@@ -70,6 +71,7 @@ DEviRank/
 │
 ├── requirements.txt
 ├── LICENSE
+├── Dockerfile
 └── README.md
 ```
 
