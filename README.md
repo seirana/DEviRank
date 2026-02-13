@@ -65,19 +65,6 @@ Unlike end-to-end learning approaches, DEviRank emphasizes **interpretability, b
 
 ---
 
-## Quick Start (Drug Ranking)
-
-DEviRank can take **hours to days** depending on network size, number of drugs, and the random sampling size.
-So: **run a fast sanity check first**, then scale up.
-
-### 0) Clone the repository
-```bash
-git clone https://github.com/seirana/DEviRank.git
-cd DEviRank
-```
-
----
-
 ## 📂 Repository Structure
 
 ```
@@ -113,72 +100,95 @@ DEviRank/
 
 ---
 
-## ⚙️ Installation
+## Quick Start (Drug Ranking)
 
-### Requirements
+DEviRank can take **hours to days** depending on network size, number of drugs, and the random sampling size.
+So: **run a fast sanity check first**, then scale up.
+
+### 1. Clone the repository
+```bash
+cd ~
+git clone https://github.com/seirana/DEviRank.git
+cd DEviRank
+```
+
+---
+
+### ⚙️ 2. Installation
+
+Requirements
 
 * Python ≥ 3.9
 * NumPy
-* SciPy
 * NetworkX
 * pandas
 
-Install dependencies via:
+DEviRank supports two installation methods.
+
+Option A — Native Python
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
+Requires Python ≥ 3.9.
 
-## 🚀 Usage
-
-### 1. Prepare Inputs
-
-You will need:
-
-* A weighted PPI network
-* A set of disease-associated genes
-* Curated drug–gene interaction data with confidence scores
-
-All identifiers should be mapped consistently (e.g., Entrez or Ensembl).
-
----
-
-### 2. Run DEviRank
-
-```bash
-python experiments/run_devirank.py \
-    --ppi data/ppi/ppi_network.tsv \
-    --disease data/disease_genes/disease_genes.txt \
-    --drug_gene data/drug_gene/drug_gene.tsv \
-    --max_path_length 3 \
-    --n_random 10000
-```
-
-Output:
-
-* Ranked list of drugs
-* z-scores and p-values from random sampling
-* Intermediate statistics (optional)
-
----
-
-### 🐳 Run with Docker
-
-#### Build the image
+Option B — Docker (Recommended for Reproducibility)
 
 ```bash
 docker build -t devirank:latest .
 ```
 
-#### Run (show help)
+---
+
+### 🚀 3. Usage
+
+3.1. Prepare Inputs
+
+You will need the following input data:
+
+A set of disease-associated genes (replace it with your desired genes)
+
+A weighted protein–protein interaction (PPI) network,
+
+Curated drug–gene interaction data with confidence scores,
+
+A gene–protein mapping table (retrieved from Ensembl BioMart), and
+
+All required input files are available in the ./data/ directory.
+
+---
+
+🐳 3.2 Build the Docker Image
+
+All experiments are executed inside Docker to ensure reproducibility and consistent environments.
 
 ```bash
-docker run --rm devirank:latest
+docker build -t devirank:latest .
 ```
 
-#### Run an experiment (mount local data + results)
+🐳 3.3 Run DEviRank with Docker
+
+Option A — Quick Test (Sanity Check, Minutes)
+
+Runs a small random sampling to verify installation and pipeline integrity.
+
+```bash
+docker run --rm \
+  -v "$(pwd)/data:/app/data" \
+  -v "$(pwd)/experiments/results:/app/experiments/results" \
+  devirank:latest \
+  python experiments/run_devirank.py \
+    --ppi data/ppi/ppi_network.tsv \
+    --disease data/disease_genes/disease_genes.txt \
+    --drug_gene data/drug_gene/drug_gene.tsv \
+    --max_path_length 2 \
+    --n_random 1000
+```
+
+Option B — Full Drug Ranking (Hours to Days)
+
+High-precision Monte Carlo estimation.
 
 ```bash
 docker run --rm \
@@ -190,15 +200,40 @@ docker run --rm \
     --disease data/disease_genes/disease_genes.txt \
     --drug_gene data/drug_gene/drug_gene.tsv \
     --max_path_length 3 \
-    --n_random 10000
-```
+    --n_random 100000
+ ```
+   
+Output:
 
-#### Using Docker Compose (optional)
+* Ranked list of drugs
+* z-scores and p-values from random sampling
+* Intermediate statistics
+
+Option C — Comparison with Network Proximity–Based Baseline
+
+To compare DEviRank against the shortest-path proximity baseline:
 
 ```bash
-docker compose build
-docker compose run --rm devirank
+docker run --rm \
+  -v "$(pwd)/data:/app/data" \
+  -v "$(pwd)/experiments/results:/app/experiments/results" \
+  devirank:latest \
+  python experiments/compare_devirank_vs_baseline.py \
+    --ppi data/ppi/ppi_network.tsv \
+    --disease data/disease_genes/disease_genes.txt \
+    --drug_gene data/drug_gene/drug_gene.tsv \
+    --n_random 10000  
 ```
+
+Output:
+
+* z-scores and p-values from random sampling
+* Intermediate statistics
+
+Option D - If Docker is not available:
+
+pip install -r requirements.txt
+python experiments/run_devirank.py ...
 
 ---
 
