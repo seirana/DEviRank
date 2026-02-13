@@ -5,6 +5,29 @@
 DEviRank is a network-based drug efficacy screening framework that ranks candidate drugs based on their proximity to disease-associated genes in a protein–protein interaction (PPI) network. It extends classical interactome-based proximity methods by integrating **path-level network evidence** with **curated drug–gene interaction confidence**, enabling interpretable and statistically robust drug prioritization.
 
 This repository accompanies the DEviRank method described in our LNCS publication and provides a fully reproducible implementation, supplementary analyses, and documentation.
+---
+
+---
+
+## Table of Contents
+- [DEviRank](#devirank)
+- [Method Overview](#method-overview)
+- [Key Features](#-key-features)
+- [Quick Start (Drug Ranking)](#quick-start-drug-ranking)
+  - [0) Clone the repository](#0-clone-the-repository)
+  - [1) Fast sanity check (minutes)](#1-fast-sanity-check-minutes)
+  - [2) Full drug ranking (hours-to-days)](#2-full-drug-ranking-hours-to-days)
+  - [3) Compare against Guney-style proximity baseline](#3-compare-against-guney-style-proximity-baseline)
+- [Repository Structure](#repository-structure)
+- [Installation](#️-installation)
+- [Usage](#usage)
+- [Run with Docker](#run-with-docker)
+- [Statistical Evaluation](#statistical-evaluation)
+- [Computational Complexity](#️-computational-complexity)
+- [Reproducibility](#reproducibility)
+- [Citation](#citation)
+- [License](#license)
+- [Contact](#contact)
 
 ---
 
