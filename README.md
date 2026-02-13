@@ -4,7 +4,7 @@
 
 DEviRank is a network-based drug efficacy screening framework that ranks candidate drugs based on their proximity to disease-associated genes in a protein–protein interaction (PPI) network. It extends classical interactome-based proximity methods by integrating **path-level network evidence** with **curated drug–gene interaction confidence**, enabling interpretable and statistically robust drug prioritization.
 
-This repository accompanies the DEviRank method described in our LNCS publication and provides a fully reproducible implementation, supplementary analyses, and documentation.
+This repository accompanies the DEviRank method described in my LNCS publication and provides a fully reproducible implementation, supplementary analyses, and documentation.
 ---
 
 ---
