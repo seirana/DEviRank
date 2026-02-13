@@ -65,6 +65,19 @@ Unlike end-to-end learning approaches, DEviRank emphasizes **interpretability, b
 
 ---
 
+## Quick Start (Drug Ranking)
+
+DEviRank can take **hours to days** depending on network size, number of drugs, and the random sampling size.
+So: **run a fast sanity check first**, then scale up.
+
+### 0) Clone the repository
+```bash
+git clone https://github.com/seirana/DEviRank.git
+cd DEviRank
+```
+
+---
+
 ## 📂 Repository Structure
 
 ```
