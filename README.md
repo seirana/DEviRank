@@ -147,15 +147,15 @@ docker build -t devirank:latest .
 
 You will need the following input data:
 
-A set of disease-associated genes (replace it with your desired genes)
+* A set of disease-associated genes (replace it with your desired genes)
 
-A weighted protein–protein interaction (PPI) network,
+* A weighted protein–protein interaction (PPI) network,
 
-Curated drug–gene interaction data with confidence scores,
+* Curated drug–gene interaction data with confidence scores,
 
-A gene–protein mapping table (retrieved from Ensembl BioMart), and
+* A gene–protein mapping table (retrieved from Ensembl BioMart), and
 
-All required input files are available in the ./data/ directory.
+* All required input files are available in the ./data/ directory.
 
 ---
 
