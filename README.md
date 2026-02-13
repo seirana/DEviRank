@@ -100,7 +100,7 @@ DEviRank/
 
 ---
 
-## Quick Start (Drug Ranking)
+## Quick Start
 
 DEviRank can take **hours to days** depending on network size, number of drugs, and the random sampling size.
 So: **run a fast sanity check first**, then scale up.
