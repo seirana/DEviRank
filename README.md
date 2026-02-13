@@ -230,7 +230,7 @@ Output:
 * z-scores and p-values from random sampling
 * Intermediate statistics
 
-Option D - If Docker is not available:
+Option D — If Docker is not available:
 
 ```bash
 pip install -r requirements.txt
