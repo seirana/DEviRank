@@ -232,8 +232,10 @@ Output:
 
 Option D - If Docker is not available:
 
+```bash
 pip install -r requirements.txt
 python experiments/run_devirank.py ...
+```
 
 ---
 
