@@ -167,7 +167,7 @@ All experiments are executed inside Docker to ensure reproducibility and consist
 docker build -t devirank:latest .
 ```
 
-🐳 3.3 Run DEviRank with Docker
+3.3 Run DEviRank with Docker
 
 Option A — Quick Test (Sanity Check, Minutes)
 
