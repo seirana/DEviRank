@@ -151,7 +151,7 @@ REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/
 echo "Using repo: $REPO_DIR"
 cd "$REPO_DIR"
 
-docker build -t devirank:latest .
+sudo docker build -t devirank:latest .
 ```
 
 ### 4. 🧬 Usage
