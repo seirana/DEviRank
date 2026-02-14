@@ -83,9 +83,9 @@ DEviRank/
 │   └── repeated(filtered).csv /      
 │
 ├── experiments/
-│   ├── run_devirank.py     # Main experiment runner
-│   ├── sampling_analysis/  # Random sampling robustness experiments
-│   └── results/            # Output rankings and statistics
+│   ├── results_quick_test   # 
+│   ├── results_quick_test/  # the quick test for the program
+│   └── results_DEviRank_vs_Nbisdes/     # Output compRING DEviRank vs Nbisdes
 │
 ├── supplementary/
 │   ├── time_complexity.pdf # Step-by-step complexity derivation
@@ -134,11 +134,6 @@ DEviRank supports two installation methods.
 ```bash
 cd ~
 REPO_DIR="$(find . -maxdepth 5 -type f -name setup_dependencies.sh -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
-if [ -z "$REPO_DIR" ]; then
-  echo "ERROR: Could not find DEviRank (setup_dependencies not found under \$HOME)."
-  echo "Hint: run: git clone https://github.com/seirana/DEviRank.git"
-  exit 1
-fi
 echo "Using repo: $REPO_DIR"
 cd "$REPO_DIR"
 
@@ -150,11 +145,6 @@ bash ./setup_dependencies.sh
 ```bash
 cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
-if [ -z "$REPO_DIR" ]; then
-  echo "ERROR: Could not find DEviRank (Dockerfile not found under \$HOME)."
-  echo "Hint: run: git clone https://github.com/seirana/DEviRank.git"
-  exit 1
-fi
 echo "Using repo: $REPO_DIR"
 cd "$REPO_DIR"
 
@@ -189,11 +179,6 @@ Runs a small random sampling to verify installation and pipeline integrity.
 ```bash
 cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
-if [ -z "$REPO_DIR" ]; then
-  echo "ERROR: Could not locate DEviRank under \$HOME."
-  echo "Hint: git clone https://github.com/seirana/DEviRank.git"
-  exit 1
-fi
 echo "Using repository at: $REPO_DIR"
 
 docker run --rm \
@@ -212,20 +197,17 @@ High-precision Monte Carlo estimation.
 ```bash
 cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
-if [ -z "$REPO_DIR" ]; then
-  echo "ERROR: Could not locate DEviRank under \$HOME."
-  echo "Hint: git clone https://github.com/seirana/DEviRank.git"
-  exit 1
-fi
 echo "Using repository at: $REPO_DIR"
 
 docker run --rm \
   -v "$REPO_DIR:/app" \
   devirank:latest \
   python experiments/run_devirank.py \
-    --disease_file /WHERE/DISEASE_GENES.CSV/ACCESSED/FROM \
+    # Example: disease file inside repo
+    --disease_file /app/data/disease_target_genes.csv \  
     --sampling_size 1000 \
-    --output_folder /WHERE/YOU/WANT/TO/SAVE/THE/RESULTS
+    # Example: custom output folder
+    --output_folder /app/experiments/result_DEviRank \ 
  ```
    
 Output:
@@ -241,19 +223,16 @@ To compare DEviRank against the shortest-path proximity baseline:
 ```bash
 cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
-if [ -z "$REPO_DIR" ]; then
-  echo "ERROR: Could not locate DEviRank under \$HOME."
-  echo "Hint: git clone https://github.com/seirana/DEviRank.git"
-  exit 1
-fi
 echo "Using repository at: $REPO_DIR"
 
 docker run --rm \
   -v "$REPO_DIR:/app" \
   devirank:latest \
   python experiments/run_devirank.py \
-    --disease_file /app/data/disease_target_genes.csv \
+    # Example: disease file inside repo
+    --disease_file /app/data/disease_target_genes.csv \  
     --sampling_size 1000 \
+    # Example: custom output folder
     --output_folder /app/experiments/results_DEviRank_vs_Nbisdes
 ```
 
