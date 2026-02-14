@@ -9,24 +9,25 @@ This repository accompanies the DEviRank method described in my LNCS publication
 ---
 
 ## Table of Contents
+
 - [DEviRank](#devirank)
-- [Method Overview](#method-overview)
-- [Key Features](#-key-features)
-- [Quick Start (Drug Ranking)](#quick-start-drug-ranking)
-  - [0) Clone the repository](#0-clone-the-repository)
-  - [1) Fast sanity check (minutes)](#1-fast-sanity-check-minutes)
-  - [2) Full drug ranking (hours-to-days)](#2-full-drug-ranking-hours-to-days)
-  - [3) Compare against Guney-style proximity baseline](#3-compare-against-guney-style-proximity-baseline)
-- [Repository Structure](#repository-structure)
-- [Installation](#️-installation)
-- [Usage](#usage)
-- [Run with Docker](#run-with-docker)
-- [Statistical Evaluation](#statistical-evaluation)
-- [Computational Complexity](#️-computational-complexity)
-- [Reproducibility](#reproducibility)
-- [Citation](#citation)
-- [License](#license)
-- [Contact](#contact)
+- [🔬 Method Overview](#-method-overview)
+- [✨ Key Features](#-key-features)
+- [📂 Repository Structure](#-repository-structure)
+- [🚀 Quick Start](#-quick-start)
+  - [1. ⬇️ Download System Requirements](#1-⬇️-download-system-requirements)
+  - [2. 📥 Clone the Repository](#2-📥-clone-the-repository)
+  - [3. ⚙️ Installation](#3-⚙️-installation)
+  - [4. 🧬 Usage](#4-🧬-usage)
+    - [4.1. 📑 Prepare Inputs](#41-📑-prepare-inputs)
+    - [4.2. ▶️ Run DEviRank](#42-▶️-run-devirank)
+- [📊 Statistical Evaluation](#-statistical-evaluation)
+- [⏱️ Computational Complexity](#️-computational-complexity)
+- [🔁 Reproducibility](#-reproducibility)
+- [📄 Citation](#-citation)
+- [📜 License](#-license)
+- [🤝 Contact](#-contact)
+- [🧠 Notes for Reviewers](#-notes-for-reviewers)
 
 ---
 
