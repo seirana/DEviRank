@@ -165,7 +165,6 @@ docker build -t devirank:latest .
 
 ### 4. 🧬 Usage
 
-
 #### 4.1. 📑 Prepare Inputs
 
 You will need the following input data:
@@ -371,5 +370,3 @@ GitHub: [https://github.com/seirana](https://github.com/seirana)
 * This repository serves as **supplementary material** for the associated LNCS paper.
 * All design choices are explicitly documented.
 * The implementation favors **clarity and interpretability** over black-box optimization.
-
----
