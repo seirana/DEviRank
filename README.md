@@ -2,7 +2,7 @@
 
 **Evidence-Weighted Drug Ranking via Network-Based Proximity Analysis**
 
-DEviRank is a network-based drug efficacy screening framework that ranks candidate drugs based on their proximity to disease-associated genes in a protein–protein interaction (PPI) network. It extends classical interactome-based proximity methods by integrating **path-level network evidence** with **curated drug–gene interaction confidence**, enabling interpretable and statistically robust drug prioritization.
+DEviRank is a network-based drug prioritization framework that ranks candidate drugs according to their network proximity to disease-associated genes in a protein–protein interaction (PPI) network. Building on classical interactome-based proximity measures, DEviRank aggregates evidence from bounded simple paths between drug targets and disease genes and integrates this with curated drug–gene interaction confidence scores. The resulting formulation provides an interpretable, evidence-weighted ranking while enabling statistical assessment through degree-preserving random sampling.
 
 This repository accompanies the DEviRank method described in my LNCS publication and provides a fully reproducible implementation, supplementary analyses, and documentation.
 
@@ -32,35 +32,34 @@ This repository accompanies the DEviRank method described in my LNCS publication
 
 ## 🔬 Method Overview
 
-DEviRank builds on the observation that effective drugs typically interact with **a subset of disease-associated proteins within a local network neighborhood**, rather than targeting the entire disease module.
+DEviRank builds on the observation that therapeutically relevant drugs often modulate a subset of disease-associated proteins located within a local network neighborhood, rather than targeting the entire disease module.
 
-The method consists of three main steps:
+The method consists of three main components:
 
-1. **Disease gene weighting**
-   Disease-associated genes are weighted by their local PPI connectivity to reflect their network influence.
+1. **Disease Gene Weighting**  
+   Each disease-associated gene is assigned a weight based on its local connectivity within the PPI network, reflecting its relative network influence.
 
-2. **Path-based drug target scoring**
-   For each drug target gene, DEviRank aggregates evidence from **all simple paths of bounded length (≤ 3)** connecting the drug target to disease-associated genes.
-   Path contributions are weighted by:
+2. **Bounded Path-Based Target Scoring**  
+   For each drug target gene, DEviRank aggregates evidence from all simple paths of bounded length (≤ 3) connecting the drug target to disease-associated genes.  
+   Each path contribution is weighted by:
+   - PPI interaction confidence (edge weights)
+   - the precomputed importance of the corresponding disease gene
 
-   * PPI interaction confidence
-   * disease-gene importance
+3. **Drug-Level Evidence Aggregation**  
+   Drug-level scores are obtained by combining target-level scores using curated drug–gene interaction (DGI) confidence, producing an interpretable, evidence-weighted ranking.
 
-3. **Drug-level aggregation**
-   Drug target scores are combined using **curated drug–gene interaction (DGI) confidence**, yielding a final, interpretable drug score.
-
-Unlike end-to-end learning approaches, DEviRank emphasizes **interpretability, biological grounding, and statistical stability**, making it suitable for settings with limited labeled data.
+Unlike end-to-end learning approaches, DEviRank is explicitly model-driven and emphasizes interpretability, biological transparency, and statistical validation through degree-preserving random sampling. This makes the framework particularly suitable for settings with limited labeled data or where methodological transparency is required.
 
 ---
 
 ## ✨ Key Features
 
-* Network-based drug ranking with **explicit scoring formulation**
-* Integration of **PPI confidence** and **curated DGI evidence**
-* Bounded **simple-path enumeration** (max length = 3)
-* Robust statistical evaluation via **degree-preserving random sampling**
-* Designed for **parallel execution** across drugs
-* Fully reproducible and transparent implementation
+- Explicit evidence-weighted scoring formulation combining network topology and interaction confidence  
+- Integration of weighted PPI edges and curated drug–gene interaction (DGI) confidence  
+- Aggregation over bounded simple paths (maximum length = 3) to capture local network effects  
+- Degree-preserving random sampling for statistically grounded proximity assessment  
+- Embarrassingly parallel per-drug evaluation for scalable computation  
+- Fully reproducible and transparent research implementation
 
 ---
 
@@ -271,43 +270,47 @@ Output:
 
 ## 📊 Statistical Evaluation
 
-DEviRank evaluates drug–disease proximity using **degree-preserving random sampling**, following established interactome-based methods.
+DEviRank assesses drug–disease proximity using degree-preserving random sampling in the PPI network. For each drug, random protein sets are generated that match the size and degree distribution of the original drug target set, ensuring a biologically meaningful null model.
 
 Random sampling is used to:
+- estimate null distributions of network proximity scores,
+- compute z-scores and empirical p-values,
+- evaluate stability and convergence of the ranking results.
 
-* estimate null distributions
-* compute z-scores and p-values
-* assess robustness and convergence
+### Sampling Sizes
 
-### Sampling sizes
+To assess robustness, we report results using three sampling regimes:
 
-We provide results for:
+- **1k samples** – baseline configuration consistent with prior interactome-based studies  
+- **10k samples** – computationally efficient and empirically stable  
+- **100k samples** – high-resolution reference for convergence analysis  
 
-* 1k samples (baseline, following prior work)
-* 10k samples (stable and efficient)
-* 100k samples (high-precision reference)
-
-A detailed robustness and convergence analysis is included in the **supplementary material**.
+A detailed robustness and convergence analysis, including variability metrics and theoretical considerations, is provided in the supplementary material.
 
 ---
 
 ## ⏱️ Computational Complexity
 
-DEviRank enumerates **simple paths of bounded length (L ≤ 3)**.
+DEviRank enumerates simple paths of bounded length (L ≤ 3) between drug target genes and disease-associated genes in the PPI network.
 
-Per drug, the runtime is bounded by:
+Let:
+- |S| denote the number of drug target genes,
+- |T| denote the number of disease-associated genes,
+- Δ denote the maximum node degree in the PPI network.
 
-[
-O!\left(\sum_{t \in T} \deg(t) + \sum_{s \in S} \deg(s)\Delta^2\right)
-]
+The computation of disease gene weights scales with the local neighborhood size and requires:
 
-and by (O(|S|\Delta^3)) in the worst case, where:
+O(∑_{t ∈ T} deg(t)).
 
-* (S) = drug target genes
-* (T) = disease genes
-* (\Delta) = maximum PPI degree
+Because path enumeration is restricted to simple paths of maximum length 3, the number of candidate paths originating from a drug target s is bounded by O(deg(s) Δ²). Summing over all s ∈ S yields a per-drug runtime of:
 
-Since drugs are evaluated independently, DEviRank is **embarrassingly parallel**.
+O(∑_{t ∈ T} deg(t) + ∑_{s ∈ S} deg(s) Δ²),
+
+and in the worst case:
+
+O(|S| Δ³).
+
+Since drug evaluations are independent, DEviRank is embarrassingly parallel and scales linearly with the number of drugs.
 
 A step-by-step complexity derivation is provided in:
 
