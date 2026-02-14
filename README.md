@@ -169,8 +169,7 @@ docker build -t devirank:latest .
 
 ### 4. 🧬 Usage
 
-
-4.1. 📑 Prepare Inputs
+#### 4.1. 📑 Prepare Inputs
 
 You will need the following input data:
 
@@ -187,9 +186,9 @@ You will need the following input data:
 
 All experiments are executed inside Docker to ensure reproducibility and consistent environments.
 
-4.2 ▶️ Run DEviRank
+#### 4.2 ▶️ Run DEviRank
 
-Option A — Quick Test (Sanity Check, Minutes)
+*Option A — Quick Test (Sanity Check, Minutes)*
 
 Runs a small random sampling to verify installation and pipeline integrity.
 
@@ -216,7 +215,7 @@ docker run --rm \
     --max_path_length 2 \
     --n_random 1000
 ```
-Option B — Full Drug Ranking (Hours to Days)
+*Option B — Full Drug Ranking (Hours to Days)*
 
 High-precision Monte Carlo estimation.
 
@@ -250,7 +249,7 @@ Output:
 * z-scores and p-values from random sampling
 * Intermediate statistics
 
-Option C — Comparison with Network Proximity–Based Baseline
+*Option C — Comparison with Network Proximity–Based Baseline*
 
 To compare DEviRank against the shortest-path proximity baseline:
 
@@ -281,13 +280,6 @@ Output:
 
 * z-scores and p-values from random sampling
 * Intermediate statistics
-
-Option D — If Docker is not available:
-
-```bash
-pip install -r requirements.txt
-python experiments/run_devirank.py ...
-```
 
 ---
 
