@@ -186,7 +186,7 @@ echo "Using repository at: $REPO_DIR"
 
 sudo docker run --rm \
   -v "$REPO_DIR:/app" \
-  devirank:latest \
+  devirank:latest \             
   python scr/run_devirank.py \
     --disease_file /app/data/disease_target_genes.csv \
     --sampling_size 1000 \
