@@ -161,8 +161,6 @@ cd "$REPO_DIR"
 docker build -t devirank:latest .
 ```
 
----
-
 ### 4. 🧬 Usage
 
 #### 4.1. 📑 Prepare Inputs
