@@ -91,7 +91,8 @@ DEviRank/
 │
 ├── supplementary/
 │   ├── time_complexity.pdf # Step-by-step complexity derivation
-│   └── additional_tables/  # Supplementary tables and figures
+│   ├── DEviRank algorithm in a blink.png # a flowchart that shows inputs, steps, and outputs.
+│   └── additional_tables/  # Supplementary tables
 │
 ├── requirements.txt
 ├── LICENSE
