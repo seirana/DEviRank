@@ -197,15 +197,14 @@ fi
 echo "Using repository at: $REPO_DIR"
 
 docker run --rm \
-  -e DATA_DIR=/app \
-  -e OUT_DIR=/app \
-  -v "$REPO_DIR:/app/DEviRank" \
+  -v "$REPO_DIR:/app" \
   devirank:latest \
   python experiments/run_devirank.py \
-    --disease_file data/disease_target_genes.csv \
+    --disease_file /app/data/disease_target_genes.csv \
     --sampling_size 1000 \
-    --output_folder quick_test
+    --output_folder /app/experiments/results_quick_test
 ```
+
 #### Option B — Full Drug Ranking (Hours to Days)
 
 High-precision Monte Carlo estimation.
@@ -213,23 +212,20 @@ High-precision Monte Carlo estimation.
 ```bash
 cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
-
 if [ -z "$REPO_DIR" ]; then
   echo "ERROR: Could not locate DEviRank under \$HOME."
   echo "Hint: git clone https://github.com/seirana/DEviRank.git"
   exit 1
 fi
-
 echo "Using repository at: $REPO_DIR"
 
 docker run --rm \
-  -v "$REPO_DIR/data:/app/data" \
-  -v "$REPO_DIR/experiments/results:/app/experiments/results" \
+  -v "$REPO_DIR:/app" \
   devirank:latest \
   python experiments/run_devirank.py \
-    --disease_file data/disease_target_genes.csv \
+    --disease_file /WHERE/DISEASE_GENES.CSV/ACCESSED/FROM \
     --sampling_size 1000 \
-    --output_folder drug_ranking
+    --output_folder /WHERE/YOU/WANT/TO/SAVE/THE/RESULTS
  ```
    
 Output:
@@ -245,23 +241,20 @@ To compare DEviRank against the shortest-path proximity baseline:
 ```bash
 cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
-
 if [ -z "$REPO_DIR" ]; then
   echo "ERROR: Could not locate DEviRank under \$HOME."
   echo "Hint: git clone https://github.com/seirana/DEviRank.git"
   exit 1
 fi
-
 echo "Using repository at: $REPO_DIR"
 
 docker run --rm \
-  -v "$REPO_DIR/data:/app/data" \
-  -v "$REPO_DIR/experiments/results:/app/experiments/results" \
+  -v "$REPO_DIR:/app" \
   devirank:latest \
   python experiments/run_devirank.py \
-    --disease_file data/disease_target_genes.csv \
+    --disease_file /app/data/disease_target_genes.csv \
     --sampling_size 1000 \
-    --output_folder Drug_Ranking
+    --output_folder /app/experiments/results_DEviRank_vs_Nbisdes
 ```
 
 Output:
