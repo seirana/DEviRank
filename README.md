@@ -100,48 +100,62 @@ DEviRank/
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 DEviRank can take **hours to days** depending on network size, number of drugs, and the random sampling size.
 So: **run a fast sanity check first**, then scale up.
 
-### 1. Clone the repository
+### 1. Download system requirements
+
+Requirements
+
+* Python ≥ 3.9
+* numpy ≥ 1.24
+* pandas ≥ 2.0
+* networkx ≥ 3.1
+
+```bash
+sudo apt update
+sudo apt install -y \
+    git \
+    build-essential \
+    wget curl unzip \
+    python3.12 python3.12-venv
+```
+    
+### 2. Clone the repository
 ```bash
 cd ~
 git clone https://github.com/seirana/DEviRank.git
 cd DEviRank
 ```
 
----
-
-### ⚙️ 2. Installation
-
-Requirements
-
-* Python ≥ 3.9
-* NumPy
-* NetworkX
-* pandas
+### ⚙️ 3. Installation
 
 DEviRank supports two installation methods.
 
-Option A — Native Python
-
+Option A — Native setup (for HPC / no-Docker environments)
 ```bash
-pip install -r requirements.txt
+cd ~
+REPO_DIR="$(find . -maxdepth 5 -type f -name setup_dependencies.sh -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
+echo "$REPO_DIR"
+cd "$REPO_DIR"
+bash ./setup_dependencies.sh
 ```
-
-Requires Python ≥ 3.9.
 
 Option B — Docker (Recommended for Reproducibility)
 
 ```bash
+cd ~
+REPO_DIR="$(find . -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
+echo "$REPO_DIR"
+cd "$REPO_DIR"
 docker build -t devirank:latest .
 ```
 
 ---
 
-### 🚀 3. Usage
+### 3. Usage
 
 3.1. Prepare Inputs
 
