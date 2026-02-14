@@ -17,8 +17,11 @@ import argparse
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]  # /app
-sys.path.insert(0, str(REPO_ROOT))
+REPO_ROOT = Path(__file__).resolve().parents[1]      # /app
+SRC_DIR = REPO_ROOT / "src"                          # /app/src
+
+sys.path.insert(0, str(REPO_ROOT))                   # allow imports from repo root
+sys.path.insert(0, str(SRC_DIR))                     # allow importing DEviRank.py from src/
 
 def _ensure_repo_on_syspath() -> Path:
     """
