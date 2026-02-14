@@ -203,10 +203,7 @@ docker run --rm \
   -v "$REPO_DIR/experiments/results:/app/experiments/results" \
   devirank:latest \
   python experiments/run_devirank.py \
-    --ppi data/ppi/ppi_network.tsv \
     --disease data/disease_genes/disease_genes.txt \
-    --drug_gene data/drug_gene/drug_gene.tsv \
-    --max_path_length 2 \
     --n_random 1000
 ```
 #### Option B — Full Drug Ranking (Hours to Days)
@@ -230,10 +227,7 @@ docker run --rm \
   -v "$REPO_DIR/experiments/results:/app/experiments/results" \
   devirank:latest \
   python experiments/run_devirank.py \
-    --ppi data/ppi/ppi_network.tsv \
-    --disease data/disease_genes/disease_genes.txt \
     --drug_gene data/drug_gene/drug_gene.tsv \
-    --max_path_length 3 \
     --n_random 100000
  ```
    
@@ -264,9 +258,7 @@ docker run --rm \
   -v "$REPO_DIR/experiments/results:/app/experiments/results" \
   devirank:latest \
   python experiments/compare_devirank_vs_baseline.py \
-    --ppi data/ppi/ppi_network.tsv \
     --disease data/disease_genes/disease_genes.txt \
-    --drug_gene data/drug_gene/drug_gene.tsv \
     --n_random 10000  
 ```
 
