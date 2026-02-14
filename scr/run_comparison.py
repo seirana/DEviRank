@@ -52,7 +52,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     _ensure_repo_on_syspath()
 
-    from src.DEviRank import compare_DEviRank_Nbisdes  # noqa: E402
+    from scr.DEviRank import compare_DEviRank_Nbisdes  # noqa: E402
 
     args = parse_args()
 
