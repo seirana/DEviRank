@@ -4,13 +4,14 @@
 from __future__ import annotations
 
 """
-DEviRank / Nbisdes proximity + scoring pipeline (portable paths, GitHub-clone runnable).
+DEviRank / Nbisdes proximity + scoring pipeline.
 
-Required environment variables:
-  - DATA_DIR : root folder containing DEviRank/data/
-  - OUT_DIR  : root folder where DEviRank/output/ will be written
+Design (as requested):
+  - disease_file: can be anywhere (absolute/relative path)
+  - static project data: always read from ./DEviRank/data/ (repo-local)
+  - results: written to an output directory chosen by the user
 
-Optional:
+Optional environment variable:
   - REPO_DIR : repo root (auto-inferred if not set)
 """
 
@@ -34,56 +35,46 @@ PathLike = Union[str, Path]
 
 
 def _resolve_repo_root() -> Path:
+    """Resolve repo root (folder that contains 'data/' and 'experiments/')."""
     repo_env = os.environ.get("REPO_DIR")
     if repo_env:
         return Path(repo_env).expanduser().resolve()
-    # Heuristic: script is inside repo; repo root is one or two levels up.
+    # If this file is in src/, repo root is parents[1]
     return Path(__file__).resolve().parents[1]
+
+
+def _resolve_out_dir(out_dir: Optional[PathLike]) -> Path:
+    """
+    Resolve output directory.
+    If None, default to <repo>/experiments/results
+    """
+    if out_dir is None:
+        out = _resolve_repo_root() / "experiments" / "results"
+    else:
+        out = Path(out_dir).expanduser().resolve()
+    out.mkdir(parents=True, exist_ok=True)
+    return out
 
 
 @dataclass(frozen=True)
 class ProjectPaths:
     repo_dir: Path
     data_dir: Path
-    out_dir: Path
-    devi_repo: Path
-    devi_data: Path
-    devi_out: Path
 
 
 def get_project_paths() -> ProjectPaths:
     repo_dir = _resolve_repo_root()
-
-    data_env = os.environ.get("DATA_DIR")
-    out_env = os.environ.get("OUT_DIR")
-
-    if not data_env:
-        raise EnvironmentError("DATA_DIR is not set. Example: export DATA_DIR=/path/to/data_root")
-    if not out_env:
-        raise EnvironmentError("OUT_DIR is not set. Example: export OUT_DIR=/path/to/output_root")
-
-    data_dir = Path(data_env).expanduser().resolve()
-    out_dir = Path(out_env).expanduser().resolve()
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    devi_repo = repo_dir / "DEviRank"
-    devi_data = data_dir / "DEviRank" / "data"
-    devi_out = out_dir / "DEviRank" / "output"
-    devi_out.mkdir(parents=True, exist_ok=True)
-
-    return ProjectPaths(
-        repo_dir=repo_dir,
-        data_dir=data_dir,
-        out_dir=out_dir,
-        devi_repo=devi_repo,
-        devi_data=devi_data,
-        devi_out=devi_out,
-    )
+    data_dir = repo_dir / "data"
+    if not data_dir.exists():
+        raise FileNotFoundError(
+            f"Repo-local data directory not found: {data_dir}\n"
+            "Expected: <repo>/data/ (i.e., ./DEviRank/data/ after cloning)."
+        )
+    return ProjectPaths(repo_dir=repo_dir, data_dir=data_dir)
 
 
 PATHS = get_project_paths()
-DEVI_DATA = PATHS.devi_data
-DEVI_OUT = PATHS.devi_out
+DEVI_DATA = PATHS.data_dir
 
 
 # ======================================================================================
@@ -161,7 +152,6 @@ def _build_graph_from_ppi(ppi: pd.DataFrame, *, include_all_genes: Optional[Iter
         for gene in include_all_genes:
             g.add_node(gene)
 
-    # add edges
     for gene1, gene2 in zip(ppi["gene1"], ppi["gene2"]):
         g.add_edge(gene1, gene2)
 
@@ -171,15 +161,12 @@ def _build_graph_from_ppi(ppi: pd.DataFrame, *, include_all_genes: Optional[Iter
 def matrix_to_network_Nbisdes() -> nx.Graph:
     """Nbisdes: PPI network with genes present in the PPI."""
     ppi = read_csv(DEVI_DATA / "gene_gene_PPI700_ENSEMBL")
-    # include both endpoints (important if gene2 contains genes not in gene1)
     all_genes = pd.concat([ppi["gene1"], ppi["gene2"]]).drop_duplicates()
     return _build_graph_from_ppi(ppi, include_all_genes=all_genes)
 
 
 def matrix_to_network_DEviRank() -> nx.Graph:
-    """
-    DEviRank: PPI network plus *all* protein-coding genes (isolated nodes allowed).
-    """
+    """DEviRank: PPI network plus all protein-coding genes (isolated nodes allowed)."""
     pcg = read_csv(DEVI_DATA / "protein_coding_genes_ENSEMBL")
     ppi = read_csv(DEVI_DATA / "gene_gene_PPI700_ENSEMBL")
 
@@ -432,18 +419,22 @@ def calculate_proximity(network: nx.Graph, nodes_from: Sequence[str], nodes_to: 
 
 def calculate_proximity_collecting(
     disease_file: PathLike,
+    *,
+    out_dir: PathLike,
     sampling: Optional[int] = None,
     which_method: str = "DEviRank",
-    *,
     chunk_size: int = DEFAULT_CHUNK_SIZE,
 ):
     """
     Compute drug proximity scores against a disease gene set.
 
+    Writes outputs to: out_dir/
+
     Rules:
       - DEviRank: sampling defaults to 100k if not provided; chunked by chunk_size drugs per part.
       - Nbisdes: sampling fixed to 1000; runs as a single chunk.
     """
+    out_dir = _resolve_out_dir(out_dir)
 
     disease_to_genes = read_csv(disease_file)
     drug_to_targets = read_csv(DEVI_DATA / "DtoDGI_ENSEMBL(filtered)")
@@ -465,7 +456,7 @@ def calculate_proximity_collecting(
         chunk = int(chunk_size)
     elif which_method == "Nbisdes":
         network = matrix_to_network_Nbisdes()
-        sampling_eff = 1000  # fixed
+        sampling_eff = 1000
         parts = 1
         chunk = l
     else:
@@ -481,7 +472,7 @@ def calculate_proximity_collecting(
 
     for part in range(parts):
         b = part * chunk
-        e = min((part + 1) * chunk, l)  # exclusive
+        e = min((part + 1) * chunk, l)
 
         output = pd.DataFrame(index=range(e - b), columns=cols)
 
@@ -502,20 +493,18 @@ def calculate_proximity_collecting(
             else:
                 output.loc[i - b, :] = [drug_name, "", "", "", "", "", "", "", "", "", ""]
 
-        write_csv(output, DEVI_OUT / f"drug_scores_{which_method}_{part}")
+        write_csv(output, out_dir / f"drug_scores_{which_method}_{part}")
 
-    # Merge only for DEviRank (many chunks)
     if which_method == "DEviRank":
         merged = pd.concat(
-            [read_csv(DEVI_OUT / f"drug_scores_DEviRank_{part}") for part in range(parts)],
+            [read_csv(out_dir / f"drug_scores_DEviRank_{part}") for part in range(parts)],
             axis=0,
             ignore_index=True,
         )
-        write_csv(merged, DEVI_OUT / "drug_scores_DEviRank")
+        write_csv(merged, out_dir / "drug_scores_DEviRank")
 
-        # delete chunks
         for part in range(parts):
-            p = _ensure_csv_suffix(DEVI_OUT / f"drug_scores_DEviRank_{part}")
+            p = _ensure_csv_suffix(out_dir / f"drug_scores_DEviRank_{part}")
             if p.exists():
                 p.unlink()
 
@@ -529,18 +518,18 @@ def intersection(lst1: Sequence[int], lst2: Sequence[int]) -> list[int]:
     return [v for v in lst1 if v in s2]
 
 
-def DEviRankVSNbisdes():
-    nbisdes = read_csv(DEVI_OUT / "drug_scores_Nbisdes")
-    devirank = read_csv(DEVI_OUT / "drug_scores_DEviRank")
+def DEviRankVSNbisdes(*, out_dir: PathLike):
+    out_dir = _resolve_out_dir(out_dir)
 
-    # DEviRank threshold
+    nbisdes = read_csv(out_dir / "drug_scores_Nbisdes")
+    devirank = read_csv(out_dir / "drug_scores_DEviRank")
+
     p_value = 0.05
     z_score = -1.96
     ind_z = [j for j, x in enumerate(pd.to_numeric(devirank["z score"], errors="coerce")) if x <= z_score]
     ind_p = [j for j, x in enumerate(pd.to_numeric(devirank["p-value"], errors="coerce")) if x <= p_value]
     ind_devirank = intersection(ind_z, ind_p)
 
-    # Nbisdes threshold (kept as your original behavior)
     p_value = 1
     z_score = -0.15
     ind_z = [j for j, x in enumerate(pd.to_numeric(nbisdes["z score"], errors="coerce")) if x <= z_score]
@@ -557,17 +546,21 @@ def DEviRankVSNbisdes():
         }
     )
     print(db)
-    write_csv(db, DEVI_OUT / "DEviRankVSNbisdes")
+    write_csv(db, out_dir / "DEviRankVSNbisdes")
 
 
 # ======================================================================================
-# Drug scoring (fixed indexing bugs + professional thresholds)
+# Drug scoring
 # ======================================================================================
 
-def matrix_to_network(drug_genes: pd.DataFrame, ppi: pd.DataFrame, disease_genes: pd.DataFrame, pc_genes: pd.DataFrame) -> nx.Graph:
+def matrix_to_network(
+    drug_genes: pd.DataFrame,
+    ppi: pd.DataFrame,
+    disease_genes: pd.DataFrame,
+    pc_genes: pd.DataFrame,
+) -> nx.Graph:
     network = nx.Graph()
 
-    # Collect all genes appearing anywhere
     all_drug_genes = pd.DataFrame(drug_genes.values.ravel(), columns=["merged"])
     genes = pd.concat(
         [
@@ -599,7 +592,6 @@ def weight_a_disease_gene(network: nx.Graph, disease_gene: str, ppi: pd.DataFram
 
 
 def PPI_weight(gene1: str, gene2: str, ppi: pd.DataFrame) -> float:
-    # Robust lookup: match either orientation
     m1 = (ppi["gene1"] == gene1) & (ppi["gene2"] == gene2)
     m2 = (ppi["gene1"] == gene2) & (ppi["gene2"] == gene1)
     hits = ppi.loc[m1 | m2, "max_ppi"]
@@ -631,10 +623,6 @@ def weight_a_drug(
     ppi: pd.DataFrame,
     disease_genes: pd.DataFrame,
 ) -> float:
-    """
-    Fixed a common bug:
-      - use actual selected column indices (clmns) rather than loop counter i
-    """
     total = 0.0
     clmns = [k for k, x in enumerate(drug_genes.iloc[drug_idx, :]) if x > 0]
     for col_idx in clmns:
@@ -679,7 +667,15 @@ def score_drugs(
     return weights
 
 
-def drug_scoring(disease_file: str, *, p_value: float = 0.05, z_score: float = -1.96):
+def drug_scoring(
+    disease_file: PathLike,
+    *,
+    out_dir: PathLike,
+    p_value: float = 0.05,
+    z_score: float = -1.96,
+):
+    out_dir = _resolve_out_dir(out_dir)
+
     dgi = read_csv(DEVI_DATA / "DtoGI_scores(filtered)")
     drug_genes = read_csv(DEVI_DATA / "DtoGI_ENSEMBL(filtered)")
     drugs = read_csv(DEVI_DATA / "drugs(filtered)")
@@ -689,8 +685,8 @@ def drug_scoring(disease_file: str, *, p_value: float = 0.05, z_score: float = -
     if "max_ppi" in ppi.columns:
         ppi["max_ppi"] = ppi["max_ppi"] / 1000
 
-    disease_genes = read_csv(DEVI_DATA / disease_file)
-    candidate_drugs = read_csv(DEVI_OUT / "drug_scores_DEviRank")
+    disease_genes = read_csv(disease_file)
+    candidate_drugs = read_csv(out_dir / "drug_scores_DEviRank")
 
     network = matrix_to_network(drug_genes, ppi, disease_genes, pc_genes)
 
@@ -701,11 +697,11 @@ def drug_scoring(disease_file: str, *, p_value: float = 0.05, z_score: float = -
     scores_df = pd.DataFrame(scores, columns=["DEviRank_Drug_score"])
 
     out = pd.concat([candidate_drugs, scores_df], axis=1)
-    write_csv(out, DEVI_OUT / "scoring_drugs")
+    write_csv(out, out_dir / "scoring_drugs")
 
 
 # ======================================================================================
-# Disease target gene scoring (fixed dgi indexing + professional thresholds)
+# Disease target gene scoring
 # ======================================================================================
 
 def sum_weight_all_paths_between_a_drug_gene_and_a_disease_gene(
@@ -732,9 +728,6 @@ def weight_a_drug_for_disease_gene(
     disease_genes: pd.DataFrame,
     dgi: pd.DataFrame,
 ) -> float:
-    """
-    Fixed: apply dgi weight per selected drug-gene column (not just the last loop variable).
-    """
     total = 0.0
     clmns = [k for k, x in enumerate(drug_genes.iloc[drug_idx, :]) if x > 0]
     disease_gene = str(disease_genes.iloc[disease_idx, 0])
@@ -778,7 +771,15 @@ def score_disease_genes(
     return weights
 
 
-def disease_target_gene_scoring(disease_file: str, *, p_value: float = 0.05, z_score: float = -1.96):
+def disease_target_gene_scoring(
+    disease_file: PathLike,
+    *,
+    out_dir: PathLike,
+    p_value: float = 0.05,
+    z_score: float = -1.96,
+):
+    out_dir = _resolve_out_dir(out_dir)
+
     dgi = read_csv(DEVI_DATA / "DtoGI_scores(filtered)")
     drug_genes = read_csv(DEVI_DATA / "DtoGI_ENSEMBL(filtered)")
     drugs = read_csv(DEVI_DATA / "drugs(filtered)")
@@ -788,8 +789,8 @@ def disease_target_gene_scoring(disease_file: str, *, p_value: float = 0.05, z_s
     if "max_ppi" in ppi.columns:
         ppi["max_ppi"] = ppi["max_ppi"] / 1000
 
-    disease_genes = read_csv(DEVI_DATA / disease_file)
-    candidate_drugs = read_csv(DEVI_OUT / "drug_scores_DEviRank")
+    disease_genes = read_csv(disease_file)
+    candidate_drugs = read_csv(out_dir / "drug_scores_DEviRank")
 
     network = matrix_to_network(drug_genes, ppi, disease_genes, pc_genes)
 
@@ -799,12 +800,11 @@ def disease_target_gene_scoring(disease_file: str, *, p_value: float = 0.05, z_s
     )
 
     scores_df = pd.DataFrame(scores)
-    # Label columns if possible
     if "ENSEMBL ID" in disease_genes.columns:
         scores_df.columns = list(disease_genes["ENSEMBL ID"])
 
     out = pd.concat([candidate_drugs.reset_index(drop=True), scores_df.reset_index(drop=True)], axis=1)
-    write_csv(out, DEVI_OUT / "drug_scores_DEviRank_gene_scores")
+    write_csv(out, out_dir / "drug_scores_DEviRank_gene_scores")
 
 
 # ======================================================================================
@@ -813,23 +813,52 @@ def disease_target_gene_scoring(disease_file: str, *, p_value: float = 0.05, z_s
 
 def suggested_drugs_DEviRank(
     disease_file: PathLike,
-    sampling_size: Optional[int] = None,
     *,
+    out_dir: PathLike,
+    sampling_size: Optional[int] = None,
     p_value: float = 0.05,
     z_score: float = -1.96,
 ):
-    calculate_proximity_collecting(disease_file, sampling=sampling_size, which_method="DEviRank")
-    drug_scoring(Path(disease_file).name if isinstance(disease_file, (str, Path)) else disease_file, p_value=p_value, z_score=z_score)
-    disease_target_gene_scoring(Path(disease_file).name if isinstance(disease_file, (str, Path)) else disease_file, p_value=p_value, z_score=z_score)
+    """
+    Full DEviRank pipeline:
+      1) proximity + random sampling  -> out_dir/drug_scores_DEviRank.csv
+      2) drug scoring                 -> out_dir/scoring_drugs.csv
+      3) disease-gene scoring         -> out_dir/drug_scores_DEviRank_gene_scores.csv
+    """
+    calculate_proximity_collecting(
+        disease_file,
+        out_dir=out_dir,
+        sampling=sampling_size,
+        which_method="DEviRank",
+    )
+    drug_scoring(disease_file, out_dir=out_dir, p_value=p_value, z_score=z_score)
+    disease_target_gene_scoring(disease_file, out_dir=out_dir, p_value=p_value, z_score=z_score)
 
 
-def compare_DEviRank_Nbisdes(disease_file: PathLike, sampling_size: Optional[int] = None):
-    calculate_proximity_collecting(disease_file, sampling=sampling_size, which_method="DEviRank")
-    calculate_proximity_collecting(disease_file, sampling=sampling_size, which_method="Nbisdes")
-    DEviRankVSNbisdes()
+def compare_DEviRank_Nbisdes(
+    disease_file: PathLike,
+    *,
+    out_dir: PathLike,
+    sampling_size: Optional[int] = None,
+):
+    """
+    Runs DEviRank + Nbisdes and writes comparison table to out_dir/DEviRankVSNbisdes.csv
+    """
+    calculate_proximity_collecting(
+        disease_file,
+        out_dir=out_dir,
+        sampling=sampling_size,
+        which_method="DEviRank",
+    )
+    calculate_proximity_collecting(
+        disease_file,
+        out_dir=out_dir,
+        sampling=sampling_size,
+        which_method="Nbisdes",
+    )
+    DEviRankVSNbisdes(out_dir=out_dir)
 
 
 if __name__ == "__main__":
-    # Example (you can remove this block in production):
-    # suggested_drugs_DEviRank("my_disease_genes.csv", sampling_size=100000, p_value=0.05, z_score=-1.96)
+    # Intentionally empty. Use experiments/run_devirank.py as CLI entry point.
     pass
