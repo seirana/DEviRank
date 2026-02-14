@@ -33,7 +33,7 @@ This repository accompanies the DEviRank method described in my LNCS publication
 
 ## 🔬 Method Overview
 
-DEviRank builds on the observation that effective drugs typically interact with **a subset of disease-associated proteins located within a local network neighborhood**, rather than targeting the entire disease module.
+DEviRank builds on the observation that effective drugs typically interact with **a subset of disease-associated proteins within a local network neighborhood**, rather than targeting the entire disease module.
 
 The method consists of three main steps:
 
@@ -105,7 +105,7 @@ DEviRank/
 DEviRank can take **hours to days** depending on network size, number of drugs, and the random sampling size.
 So: **run a fast sanity check first**, then scale up.
 
-### 1. Download system requirements
+### 1. ⬇️ Download system requirements
 
 Requirements
 
@@ -123,7 +123,7 @@ sudo apt install -y \
     python3.12 python3.12-venv
 ```
     
-### 2. Clone the repository
+### 2. 📥 Clone the repository
 ```bash
 cd ~
 git clone https://github.com/seirana/DEviRank.git
@@ -143,7 +143,7 @@ cd "$REPO_DIR"
 bash ./setup_dependencies.sh
 ```
 
-Option B — Docker (Recommended for Reproducibility)
+Option B — 🐳 Docker (Recommended for Reproducibility)
 
 ```bash
 cd ~
@@ -155,9 +155,10 @@ docker build -t devirank:latest .
 
 ---
 
-### 3. Usage
+### 4. 🧬 Usage
 
-3.1. Prepare Inputs
+
+4.1. 📑 Prepare Inputs
 
 You will need the following input data:
 
@@ -170,18 +171,11 @@ You will need the following input data:
 * A gene–protein mapping table (retrieved from Ensembl BioMart), and
 
 * All required input files are available in the ./data/ directory.
-
----
-
-🐳 3.2 Build the Docker Image
+  
 
 All experiments are executed inside Docker to ensure reproducibility and consistent environments.
 
-```bash
-docker build -t devirank:latest .
-```
-
-3.3 Run DEviRank
+4.2 ▶️ Run DEviRank
 
 Option A — Quick Test (Sanity Check, Minutes)
 
