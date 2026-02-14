@@ -138,8 +138,14 @@ Option A — Native setup (for HPC / no-Docker environments)
 ```bash
 cd ~
 REPO_DIR="$(find . -maxdepth 5 -type f -name setup_dependencies.sh -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
-echo "$REPO_DIR"
+if [ -z "$REPO_DIR" ]; then
+  echo "ERROR: Could not find DEviRank (setup_dependencies not found under \$HOME)."
+  echo "Hint: run: git clone https://github.com/seirana/DEviRank.git"
+  exit 1
+fi
+echo "Using repo: $REPO_DIR"
 cd "$REPO_DIR"
+
 bash ./setup_dependencies.sh
 ```
 
@@ -147,9 +153,15 @@ Option B — 🐳 Docker (Recommended for Reproducibility)
 
 ```bash
 cd ~
-REPO_DIR="$(find . -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
-echo "$REPO_DIR"
+REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
+if [ -z "$REPO_DIR" ]; then
+  echo "ERROR: Could not find DEviRank (Dockerfile not found under \$HOME)."
+  echo "Hint: run: git clone https://github.com/seirana/DEviRank.git"
+  exit 1
+fi
+echo "Using repo: $REPO_DIR"
 cd "$REPO_DIR"
+
 docker build -t devirank:latest .
 ```
 
