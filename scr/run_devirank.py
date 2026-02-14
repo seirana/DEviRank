@@ -5,10 +5,10 @@ CLI runner for the full DEviRank pipeline (proximity + drug scoring + disease-ge
 
 Designed to work with Docker commands like:
   docker run --rm -v "$REPO_DIR:/app" devirank:latest \
-    python experiments/run_devirank.py \
+    python scr/run_devirank.py \
       --disease_file /app/data/disease_target_genes.csv \
       --sampling_size 1000 \
-      --output_folder /app/experiments/results/quick_test
+      --output_folder /app/experiments/results_quick_test
 """
 
 from __future__ import annotations
@@ -17,6 +17,8 @@ import argparse
 import sys
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[1]  # /app
+sys.path.insert(0, str(REPO_ROOT))
 
 def _ensure_repo_on_syspath() -> Path:
     """
