@@ -184,13 +184,12 @@ cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
 echo "Using repository at: $REPO_DIR"
 
-sudo docker run --rm \
-  -v "$REPO_DIR:/app" \
-  devirank:latest \             
-  python scr/run_devirank.py \
+sudo docker run --rm -v "$REPO_DIR:/app" -w /app devirank:latest \
+  python /app/scr/run_devirank.py \
     --disease_file /app/data/disease_target_genes.csv \
     --sampling_size 1000 \
     --output_folder /app/experiments/results_quick_test
+
 ```
 
 #### Option B — Full Drug Ranking (Hours to Days)
