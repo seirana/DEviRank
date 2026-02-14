@@ -189,24 +189,22 @@ Runs a small random sampling to verify installation and pipeline integrity.
 ```bash
 cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
-
 if [ -z "$REPO_DIR" ]; then
   echo "ERROR: Could not locate DEviRank under \$HOME."
   echo "Hint: git clone https://github.com/seirana/DEviRank.git"
   exit 1
 fi
-
 echo "Using repository at: $REPO_DIR"
 
 docker run --rm \
-  -v "$REPO_DIR/data:/app/data" \
-  -v "$REPO_DIR/experiments/results:/app/experiments/results" \
+  -e DATA_DIR=/app \
+  -e OUT_DIR=/app \
+  -v "$REPO_DIR:/app/DEviRank" \
   devirank:latest \
   python experiments/run_devirank.py \
     --disease_file data/disease_target_genes.csv \
     --sampling_size 1000 \
     --output_folder quick_test
-
 ```
 #### Option B — Full Drug Ranking (Hours to Days)
 
