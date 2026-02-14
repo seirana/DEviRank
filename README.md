@@ -184,7 +184,7 @@ cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
 echo "Using repository at: $REPO_DIR"
 
-docker run --rm \
+sudo docker run --rm \
   -v "$REPO_DIR:/app" \
   devirank:latest \
   python scr/run_devirank.py \
@@ -202,7 +202,7 @@ cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
 echo "Using repository at: $REPO_DIR"
 
-docker run --rm \
+sudo docker run --rm \
   -v "$REPO_DIR:/app" \
   devirank:latest \
   python scr/run_devirank.py \
@@ -228,7 +228,7 @@ cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
 echo "Using repository at: $REPO_DIR"
 
-docker run --rm \
+sudo docker run --rm \
   -v "$REPO_DIR:/app" \
   devirank:latest \
   python scr/run_devirank.py \
