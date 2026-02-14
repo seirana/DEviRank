@@ -102,17 +102,14 @@ DEviRank/
 
 ## 🚀 Quick Start
 
-DEviRank can take **hours to days** depending on network size, number of drugs, and the random sampling size.
-So: **run a fast sanity check first**, then scale up.
-
-### 1. ⬇️ Download system requirements
-
 Requirements
 
 * Python ≥ 3.9
 * numpy ≥ 1.24
 * pandas ≥ 2.0
 * networkx ≥ 3.1
+
+### 1. ⬇️ Download system requirements 
 
 ```bash
 sudo apt update
@@ -134,7 +131,7 @@ cd DEviRank
 
 DEviRank supports two installation methods.
 
-Option A — Native setup (for HPC / no-Docker environments)
+*Option A — Native setup (for HPC / no-Docker environments)*
 ```bash
 cd ~
 REPO_DIR="$(find . -maxdepth 5 -type f -name setup_dependencies.sh -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
@@ -149,7 +146,7 @@ cd "$REPO_DIR"
 bash ./setup_dependencies.sh
 ```
 
-Option B — 🐳 Docker (Recommended for Reproducibility)
+*Option B — 🐳 Docker (Recommended for Reproducibility)*
 
 ```bash
 cd ~
