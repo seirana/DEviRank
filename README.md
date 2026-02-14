@@ -84,7 +84,7 @@ DEviRank/
 │   ├── results_quick_test/  # Quick-test output (DEviRank)
 │   └── results_DEviRank_vs_Nbisdes/  # Comparison output: DEviRank vs Nbisdes
 │
-├── src/
+├── scr/
 │   ├── DEviRank.py
 │   ├── run_devirank.py       
 │   └── run_comparision.py
