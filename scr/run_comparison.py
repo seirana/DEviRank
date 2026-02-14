@@ -69,7 +69,7 @@ def main() -> int:
         sampling_size=args.sampling_size,
     )
 
-    print(f"✅ Comparison finished. Results in: {out_dir}")
+    print(f" Comparison finished. Results in: {out_dir}")
     print("   - drug_scores_DEviRank.csv")
     print("   - drug_scores_Nbisdes.csv")
     print("   - DEviRankVSNbisdes.csv")
