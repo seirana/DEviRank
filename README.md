@@ -194,9 +194,20 @@ Option A — Quick Test (Sanity Check, Minutes)
 Runs a small random sampling to verify installation and pipeline integrity.
 
 ```bash
+cd ~
+REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
+
+if [ -z "$REPO_DIR" ]; then
+  echo "ERROR: Could not locate DEviRank under \$HOME."
+  echo "Hint: git clone https://github.com/seirana/DEviRank.git"
+  exit 1
+fi
+
+echo "Using repository at: $REPO_DIR"
+
 docker run --rm \
-  -v "$(pwd)/data:/app/data" \
-  -v "$(pwd)/experiments/results:/app/experiments/results" \
+  -v "$REPO_DIR/data:/app/data" \
+  -v "$REPO_DIR/experiments/results:/app/experiments/results" \
   devirank:latest \
   python experiments/run_devirank.py \
     --ppi data/ppi/ppi_network.tsv \
@@ -205,15 +216,25 @@ docker run --rm \
     --max_path_length 2 \
     --n_random 1000
 ```
-
 Option B — Full Drug Ranking (Hours to Days)
 
 High-precision Monte Carlo estimation.
 
 ```bash
+cd ~
+REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
+
+if [ -z "$REPO_DIR" ]; then
+  echo "ERROR: Could not locate DEviRank under \$HOME."
+  echo "Hint: git clone https://github.com/seirana/DEviRank.git"
+  exit 1
+fi
+
+echo "Using repository at: $REPO_DIR"
+
 docker run --rm \
-  -v "$(pwd)/data:/app/data" \
-  -v "$(pwd)/experiments/results:/app/experiments/results" \
+  -v "$REPO_DIR/data:/app/data" \
+  -v "$REPO_DIR/experiments/results:/app/experiments/results" \
   devirank:latest \
   python experiments/run_devirank.py \
     --ppi data/ppi/ppi_network.tsv \
@@ -234,9 +255,20 @@ Option C — Comparison with Network Proximity–Based Baseline
 To compare DEviRank against the shortest-path proximity baseline:
 
 ```bash
+cd ~
+REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
+
+if [ -z "$REPO_DIR" ]; then
+  echo "ERROR: Could not locate DEviRank under \$HOME."
+  echo "Hint: git clone https://github.com/seirana/DEviRank.git"
+  exit 1
+fi
+
+echo "Using repository at: $REPO_DIR"
+
 docker run --rm \
-  -v "$(pwd)/data:/app/data" \
-  -v "$(pwd)/experiments/results:/app/experiments/results" \
+  -v "$REPO_DIR/data:/app/data" \
+  -v "$REPO_DIR/experiments/results:/app/experiments/results" \
   devirank:latest \
   python experiments/compare_devirank_vs_baseline.py \
     --ppi data/ppi/ppi_network.tsv \
