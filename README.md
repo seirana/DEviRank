@@ -69,23 +69,25 @@ Unlike end-to-end learning approaches, DEviRank is explicitly model-driven and e
 ```
 DEviRank/
 │
-├── src/
-│   ├── DEviRank.py  
-│
 ├── data/
-│   ├── disease_target_genes.csv/
-│   ├── drugs(filtered).csv/ 
-│   ├── drugs_links.csv/ 
-│   ├── DtoDGI_ENSEMBL(filtered).csve/ 
-│   ├── DtoGI_scores(filtered).csv/
-│   ├── gene_gene_PPI700_ENSEMBL.csv/
+│   ├── disease_target_genes.csv
+│   ├── drugs(filtered).csv
+│   ├── drugs_links.csv
+│   ├── DtoDGI_ENSEMBL(filtered).csv
+│   ├── DtoGI_scores(filtered).csv
+│   ├── gene_gene_PPI700_ENSEMBL.csv
 │   ├── protein_coding_genes_ENSEMBL.csv        
-│   └── repeated(filtered).csv /      
+│   └── repeated(filtered).csv      
 │
 ├── experiments/
-│   ├── results_quick_test   # 
-│   ├── results_quick_test/  # the quick test for the program
-│   └── results_DEviRank_vs_Nbisdes/     # Output compRING DEviRank vs Nbisdes
+│   ├── results_devirank/  # DEviRank output
+│   ├── results_quick_test/  # Quick-test output (DEviRank)
+│   └── results_DEviRank_vs_Nbisdes/  # Comparison output: DEviRank vs Nbisdes
+│
+├── src/
+│   ├── DEviRank.py
+│   ├── run_devirank.py       
+│   └── run_comparision.py
 │
 ├── supplementary/
 │   ├── time_complexity.pdf # Step-by-step complexity derivation
@@ -184,7 +186,7 @@ echo "Using repository at: $REPO_DIR"
 docker run --rm \
   -v "$REPO_DIR:/app" \
   devirank:latest \
-  python experiments/run_devirank.py \
+  python scr/run_devirank.py \
     --disease_file /app/data/disease_target_genes.csv \
     --sampling_size 1000 \
     --output_folder /app/experiments/results_quick_test
@@ -202,7 +204,7 @@ echo "Using repository at: $REPO_DIR"
 docker run --rm \
   -v "$REPO_DIR:/app" \
   devirank:latest \
-  python experiments/run_devirank.py \
+  python scr/run_devirank.py \
     # Example: disease file inside repo
     --disease_file /app/data/disease_target_genes.csv \  
     --sampling_size 1000 \
@@ -228,7 +230,7 @@ echo "Using repository at: $REPO_DIR"
 docker run --rm \
   -v "$REPO_DIR:/app" \
   devirank:latest \
-  python experiments/run_devirank.py \
+  python scr/run_devirank.py \
     # Example: disease file inside repo
     --disease_file /app/data/disease_target_genes.csv \  
     --sampling_size 1000 \
