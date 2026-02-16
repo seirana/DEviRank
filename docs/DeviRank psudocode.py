@@ -30,6 +30,3 @@ for each s ∈ S do
 end for
 
 return w_d(d)
-
-
-
