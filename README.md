@@ -76,8 +76,13 @@ DEviRank/
 │   ├── DtoDGI_ENSEMBL(filtered).csv
 │   ├── DtoGI_scores(filtered).csv
 │   ├── gene_gene_PPI700_ENSEMBL.csv
-│   ├── protein_coding_genes_ENSEMBL.csv        
-│   └── repeated(filtered).csv      
+│   ├── protein_coding_genes_ENSEMBL.csv
+│   ├── proteins.csv      
+│   └── repeated(filtered).csv
+│
+├── docs/
+│   ├── DEviRank Overview.png  
+│   └── DeviRank Psudocode.txt 
 │
 ├── experiments/
 │   ├── results_devirank/  # DEviRank output
@@ -90,8 +95,7 @@ DEviRank/
 │   └── run_comparision.py
 │
 ├── supplementary/
-│   ├── time_complexity.pdf # Step-by-step complexity derivation
-│   ├── DEviRank algorithm overview.png # a flowchart that shows inputs, steps, and outputs.
+│   ├── DEviRank time complexity.pdf # Step-by-step complexity derivation
 │   └── additional_tables/  # Supplementary tables
 │
 ├── requirements.txt
