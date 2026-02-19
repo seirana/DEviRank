@@ -96,7 +96,7 @@ DEviRank/
 │
 ├── supplementary/
 │   ├── DEviRank time complexity.pdf # Step-by-step complexity derivation
-│   └── additional_tables/  # Supplementary tables
+│   └── Supplementary tables.xlsx
 │
 ├── requirements.txt
 ├── LICENSE
