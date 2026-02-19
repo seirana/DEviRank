@@ -1,27 +1,52 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+CLI runner for DEviRank vs Nbisdes comparison (Docker-friendly).
+
+Example:
+sudo docker run --rm -v "$REPO_DIR:/app" -w /app devirank:latest \
+  python /app/scr/run_comparison.py \
+    --disease_file /app/data/disease_target_genes.csv \
+    --sampling_size 1000 \
+    --output_folder /app/experiments/results_quick_test
+"""
+
+from __future__ import annotations
+
+import argparse
 import os
 from pathlib import Path
 
-from src.devirank_core import compare_DEviRank_Nbisdes
+from scr.DEviRank import compare_DEviRank_Nbisdes  # adjust if your core file name differs
 
-if __name__ == "__main__":
-    repo_dir = os.environ.get("REPO_DIR", None)
-    if repo_dir is None:
-        repo_dir = str(Path(__file__).resolve().parents[1])
-        os.environ["REPO_DIR"] = repo_dir
 
-    disease_file = os.environ.get("DISEASE_FILE", f"{repo_dir}/data/disease_target_genes.csv")
-    out_dir      = os.environ.get("OUT_DIR",      f"{repo_dir}/experiments/results")
+def _parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser(description="Run DEviRank + Nbisdes and compare.")
+    p.add_argument("--disease_file", required=True, type=str, help="Path to disease_target_genes.csv")
+    p.add_argument("--sampling_size", required=True, type=int, help="Sampling size (DEviRank uses it; Nbisdes ignores)")
+    p.add_argument("--output_folder", required=True, type=str, help="Output directory for results")
+    p.add_argument("--chunk_size", default=1000, type=int, help="Chunk size (default: 1000)")
+    p.add_argument("--max_drugs", default=None, type=int, help="Run only first N drugs (quick test)")
+    return p.parse_args()
 
-    sampling_size = int(os.environ.get("SAMPLING_SIZE", "100000"))
-    chunk_size    = int(os.environ.get("CHUNK_SIZE", "1000"))
-    max_drugs_env = os.environ.get("MAX_DRUGS", "")
-    max_drugs     = int(max_drugs_env) if max_drugs_env else None
+
+def main() -> int:
+    args = _parse_args()
+
+    # In Docker we mount repo at /app, so set REPO_DIR accordingly unless already set
+    os.environ.setdefault("REPO_DIR", "/app")
 
     compare_DEviRank_Nbisdes(
-        disease_file=disease_file,
-        out_dir=out_dir,
-        sampling_size=sampling_size,
-        chunk_size=chunk_size,
-        max_drugs=max_drugs,
+        disease_file=args.disease_file,
+        out_dir=args.output_folder,
+        sampling_size=args.sampling_size,
+        chunk_size=args.chunk_size,
+        max_drugs=args.max_drugs,
     )
+
+    print(f"Done. Results in: {Path(args.output_folder).resolve()}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
