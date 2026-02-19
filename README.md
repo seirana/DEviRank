@@ -206,7 +206,10 @@ cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
 echo "Using repository at: $REPO_DIR"
 
-python scr/run_devirank.py\
+cd "$REPO_DIR" || exit 1
+conda activate devirank
+
+python ./scr/run_devirank.py \
   --disease_file data/disease_target_genes.csv \
   --sampling_size 10 \
   --output_folder experiments/results_quick_test
