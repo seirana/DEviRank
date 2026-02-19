@@ -141,7 +141,7 @@ DEviRank supports two installation methods.
 *Option A — Native setup (for HPC / no-Docker environments)*
 ```bash
 cd ~
-REPO_DIR="$(find . -maxdepth 5 -type f -name setup_dependencies.sh -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
+REPO_DIR="$(find . -maxdepth 5 -type f -name  requirements.txt -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
 echo "Using repo: $REPO_DIR"
 cd "$REPO_DIR"
 
