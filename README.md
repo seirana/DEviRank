@@ -73,7 +73,7 @@ DEviRank/
 │   ├── disease_target_genes.csv
 │   ├── drugs(filtered).csv
 │   ├── drugs_links.csv
-│   ├── DtoDGI_ENSEMBL(filtered).csv
+│   ├── DtoGI_ENSEMBL(filtered).csv
 │   ├── DtoGI_scores(filtered).csv
 │   ├── gene_gene_PPI700_ENSEMBL.csv
 │   ├── protein_coding_genes_ENSEMBL.csv
