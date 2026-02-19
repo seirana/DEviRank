@@ -194,7 +194,6 @@ sudo docker run --rm -v "$REPO_DIR:/app" -w /app devirank:latest \
     --disease_file /app/data/disease_target_genes.csv \
     --sampling_size 1000 \
     --output_folder /app/experiments/results_quick_test
-
 ```
 
 #### Option B — Full Drug Ranking (Hours to Days)
