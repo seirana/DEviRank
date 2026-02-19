@@ -206,7 +206,7 @@ cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
 echo "Using repository at: $REPO_DIR"
 
-python scr/run_devirank.py \
+python scr/run_devirank.py\
   --disease_file data/disease_target_genes.csv \
   --sampling_size 1000 \
   --output_folder experiments/results_quick_test
@@ -225,10 +225,7 @@ sudo docker run --rm \
   -v "$REPO_DIR:/app" \
   devirank:latest \
   python scr/run_devirank.py \
-    # Example: disease file inside repo
     --disease_file /app/data/disease_target_genes.csv \  
-    --sampling_size 1000 \
-    # Example: custom output folder
     --output_folder /app/experiments/result_DEviRank \ 
  ```
  without Docker:
@@ -239,10 +236,7 @@ REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/
 echo "Using repository at: $REPO_DIR"
 
 python scr/run_devirank.py \
-  # Example: disease file inside repo
   --disease_file /app/data/disease_target_genes.csv \  
-  --sampling_size 1000 \
-  # Example: custom output folder
   --output_folder /app/experiments/result_DEviRank \ 
 ```
   
@@ -264,11 +258,8 @@ echo "Using repository at: $REPO_DIR"
 sudo docker run --rm \
   -v "$REPO_DIR:/app" \
   devirank:latest \
-  python scr/run_devirank.py \
-    # Example: disease file inside repo
+  python scr/run_comparison.py\
     --disease_file /app/data/disease_target_genes.csv \  
-    --sampling_size 1000 \
-    # Example: custom output folder
     --output_folder /app/experiments/results_DEviRank_vs_Nbisdes
 ```
 
@@ -279,11 +270,8 @@ cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
 echo "Using repository at: $REPO_DIR"
 
-python scr/run_devirank.py \
-  # Example: disease file inside repo
+python scr/run_comparison.py \
   --disease_file /app/data/disease_target_genes.csv \  
-  --sampling_size 1000 \
-  # Example: custom output folder
   --output_folder /app/experiments/results_DEviRank_vs_Nbisdes
 ```
 
