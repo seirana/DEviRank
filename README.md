@@ -91,7 +91,8 @@ DEviRank/
 │
 ├── scr/
 │   ├── DEviRank.py
-│   ├── run_devirank.py       
+│   ├── __init__.py
+│   ├── run_devirank.py      
 │   └── run_comparision.py
 │
 ├── supplementary/
