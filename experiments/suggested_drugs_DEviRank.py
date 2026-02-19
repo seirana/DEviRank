@@ -1,8 +1,0 @@
-from src.DEviRank import suggested_drugs_DEviRank
-
-def main():
-    # parse args
-    # call suggested_drugs_DEviRank(...)
-    
-if __name__ == "__main__":
-    main()
