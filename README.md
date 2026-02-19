@@ -145,7 +145,10 @@ REPO_DIR="$(find . -maxdepth 5 -type f -name setup_dependencies.sh -path '*/DEvi
 echo "Using repo: $REPO_DIR"
 cd "$REPO_DIR"
 
-bash ./setup_dependencies.sh
+conda create -n devirank python=3.12
+conda activate devirank
+python -m pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
 *Option B — 🐳 Docker (Recommended for Reproducibility)*
@@ -196,6 +199,19 @@ sudo docker run --rm -v "$REPO_DIR:/app" -w /app devirank:latest \
     --output_folder /app/experiments/results_quick_test
 ```
 
+without Docker:
+
+```bash
+cd ~
+REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
+echo "Using repository at: $REPO_DIR"
+
+python scr/run_devirank.py \
+  --disease_file data/disease_target_genes.csv \
+  --sampling_size 1000 \
+  --output_folder experiments/results_quick_test
+```
+
 #### Option B — Full Drug Ranking (Hours to Days)
 
 High-precision Monte Carlo estimation.
@@ -215,7 +231,21 @@ sudo docker run --rm \
     # Example: custom output folder
     --output_folder /app/experiments/result_DEviRank \ 
  ```
-   
+ without Docker:
+
+```bash
+cd ~
+REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
+echo "Using repository at: $REPO_DIR"
+
+python scr/run_devirank.py \
+  # Example: disease file inside repo
+  --disease_file /app/data/disease_target_genes.csv \  
+  --sampling_size 1000 \
+  # Example: custom output folder
+  --output_folder /app/experiments/result_DEviRank \ 
+```
+  
 Output:
 
 * Ranked list of drugs
@@ -240,6 +270,21 @@ sudo docker run --rm \
     --sampling_size 1000 \
     # Example: custom output folder
     --output_folder /app/experiments/results_DEviRank_vs_Nbisdes
+```
+
+ without Docker:
+
+```bash
+cd ~
+REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
+echo "Using repository at: $REPO_DIR"
+
+python scr/run_devirank.py \
+  # Example: disease file inside repo
+  --disease_file /app/data/disease_target_genes.csv \  
+  --sampling_size 1000 \
+  # Example: custom output folder
+  --output_folder /app/experiments/results_DEviRank_vs_Nbisdes
 ```
 
 Output:
