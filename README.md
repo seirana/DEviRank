@@ -86,8 +86,8 @@ DEviRank/
 │
 ├── experiments/
 │   ├── results_devirank/  # DEviRank output
-│   ├── results_quick_test/  # Quick-test output (DEviRank)
-│   └── results_DEviRank_vs_Nbisdes/  # Comparison output: DEviRank vs Nbisdes
+│   ├── results_quick_test/ # Quick-test output (DEviRank)
+│   └── results_DEviRank_vs_Nbisdes/ # Comparison output: DEviRank vs Nbisdes
 │
 ├── scr/
 │   ├── DEviRank.py
@@ -96,7 +96,7 @@ DEviRank/
 │   └── run_comparision.py
 │
 ├── supplementary/
-│   ├── DEviRank time complexity.pdf # Step-by-step complexity derivation
+│   ├── DeviRank_TimeComplexityProof.pdf
 │   └── Supplementary tables.xlsx
 │
 ├── requirements.txt
