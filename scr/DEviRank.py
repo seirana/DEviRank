@@ -571,7 +571,6 @@ def calculate_proximity_collecting(
         output = pd.DataFrame(index=range(e - b), columns=cols)
 
         for i in range(b, e):
-            print(i)
             ind = [j for j, x in enumerate(drug_to_targets.loc[i, :]) if x > 0]
             nodes_from = list(drug_to_targets.iloc[i, ind])
             drug_name = drugs.loc[i, "drug_name"]
@@ -821,7 +820,6 @@ def score_drugs(
     for drug_idx in range(len(drugs)):
         if selected.iloc[drug_idx]:
             c += 1
-            print(c)
             weights[drug_idx, 0] = weight_a_drug(network, drug_idx, dgi, drug_genes, ppi, disease_genes)
 
     return weights
@@ -930,7 +928,6 @@ def score_disease_genes(
     for drug_idx in range(len(drugs)):
         if selected.iloc[drug_idx]:
             c += 1
-            print(c)
             for disease_idx in range(len(disease_genes)):
                 weights[drug_idx, disease_idx] = weight_a_drug_for_disease_gene(
                     network, drug_idx, disease_idx, ppi, drug_genes, disease_genes, dgi
