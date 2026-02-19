@@ -1,39 +1,34 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-CLI runner for DEviRank vs Nbisdes comparison (Docker-friendly).
-
-Example:
-sudo docker run --rm -v "$REPO_DIR:/app" -w /app devirank:latest \
-  python /app/scr/run_comparison.py \
-    --disease_file /app/data/disease_target_genes.csv \
-    --sampling_size 1000 \
-    --output_folder /app/experiments/results_quick_test
-"""
-
 from __future__ import annotations
 
 import argparse
 import os
+import sys
 from pathlib import Path
 
-from scr.DEviRank import compare_DEviRank_Nbisdes  # adjust if your core file name differs
+# Ensure repo root (/app in Docker) is on sys.path
+REPO_ROOT = Path(os.environ.get("REPO_DIR", "/app")).resolve()
+sys.path.insert(0, str(REPO_ROOT))
+
+# Import your core functions
+from scr.DEviRank import compare_DEviRank_Nbisdes  # noqa: E402
 
 
-def _parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="Run DEviRank + Nbisdes and compare.")
-    p.add_argument("--disease_file", required=True, type=str, help="Path to disease_target_genes.csv")
-    p.add_argument("--sampling_size", required=True, type=int, help="Sampling size (DEviRank uses it; Nbisdes ignores)")
-    p.add_argument("--output_folder", required=True, type=str, help="Output directory for results")
-    p.add_argument("--chunk_size", default=1000, type=int, help="Chunk size (default: 1000)")
-    p.add_argument("--max_drugs", default=None, type=int, help="Run only first N drugs (quick test)")
+def parse_args():
+    p = argparse.ArgumentParser(description="Run DEviRank vs Nbisdes comparison.")
+    p.add_argument("--disease_file", required=True, help="Path to disease gene CSV")
+    p.add_argument("--sampling_size", required=True, type=int, help="Sampling size for DEviRank (Nbisdes uses its own setting)")
+    p.add_argument("--output_folder", required=True, help="Output directory")
+    p.add_argument("--chunk_size", default=1000, type=int, help="Chunk size for proximity computation")
+    p.add_argument("--max_drugs", default=None, type=int, help="Quick test: limit to first N drugs")
     return p.parse_args()
 
 
 def main() -> int:
-    args = _parse_args()
+    args = parse_args()
 
-    # In Docker we mount repo at /app, so set REPO_DIR accordingly unless already set
+    # In Docker we mount repo to /app; ensure code uses that as repo root
     os.environ.setdefault("REPO_DIR", "/app")
 
     compare_DEviRank_Nbisdes(
