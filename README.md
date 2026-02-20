@@ -192,6 +192,7 @@ cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
 echo "Using repository at: $REPO_DIR"
 
+sudo chown -R "$USER:$USER" /home/shashemi/DEviRank/experiments
 sudo docker run --rm -v "$REPO_DIR:/app" -w /app devirank:latest \
   python /app/scr/run_devirank.py \
     --disease_file /app/data/disease_target_genes.csv \
@@ -218,29 +219,31 @@ python ./scr/run_devirank.py \
 #### Option B — Full Drug Ranking (Hours to Days)
 
 High-precision Monte Carlo estimation.
+```bash
+cd ~
+REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
+echo "Using repository at: $REPO_DIR"
+
+sudo chown -R "$USER:$USER" /home/shashemi/DEviRank/experiments
+sudo docker run --rm -v "$REPO_DIR:/app" -w /app devirank:latest \
+  python /app/scr/run_devirank.py \
+    --disease_file /app/data/disease_target_genes.csv \
+    --output_folder /app/experiments/results_quick_test
+```
+
+without Docker:
 
 ```bash
 cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
 echo "Using repository at: $REPO_DIR"
 
-sudo docker run --rm \
-  -v "$REPO_DIR:/app" \
-  devirank:latest \
-  python scr/run_devirank.py \
-    --disease_file /app/data/disease_target_genes.csv \  
-    --output_folder /app/experiments/result_DEviRank \ 
- ```
- without Docker:
+cd "$REPO_DIR" || exit 1
+conda activate devirank
 
-```bash
-cd ~
-REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
-echo "Using repository at: $REPO_DIR"
-
-python scr/run_devirank.py \
-  --disease_file /app/data/disease_target_genes.csv \  
-  --output_folder /app/experiments/result_DEviRank \ 
+python ./scr/run_devirank.py \
+  --disease_file data/disease_target_genes.csv \
+  --output_folder experiments/results_quick_test
 ```
   
 Output:
