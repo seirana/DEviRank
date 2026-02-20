@@ -192,12 +192,13 @@ cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
 echo "Using repository at: $REPO_DIR"
 
-sudo chown -R "$USER:$USER" /home/shashemi/DEviRank/experiments
+sudo chown -R "$USER:$USER" ~/DEviRank/experiments
 sudo docker run --rm -v "$REPO_DIR:/app" -w /app devirank:latest \
   python /app/scr/run_devirank.py \
     --disease_file /app/data/disease_target_genes.csv \
     --sampling_size 1 \
     --output_folder /app/experiments/results_quick_test
+sudo chown -R "$USER:$USER" ~/DEviRank/experiments/results_quick_test
 ```
 
 without Docker:
@@ -224,11 +225,12 @@ cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
 echo "Using repository at: $REPO_DIR"
 
-sudo chown -R "$USER:$USER" /home/shashemi/DEviRank/experiments
+sudo chown -R "$USER:$USER" ~/DEviRank/experiments
 sudo docker run --rm -v "$REPO_DIR:/app" -w /app devirank:latest \
   python /app/scr/run_devirank.py \
     --disease_file /app/data/disease_target_genes.csv \
     --output_folder /app/experiments/results_DEviRank
+sudo chown -R "$USER:$USER" ~/DEviRank/experiments/results_DEviRank
 ```
 
 without Docker:
@@ -261,11 +263,12 @@ cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
 echo "Using repository at: $REPO_DIR"
 
-sudo chown -R "$USER:$USER" /home/shashemi/DEviRank/experiments
+sudo chown -R "$USER:$USER" ~/DEviRank/experiments
 sudo docker run --rm -v "$REPO_DIR:/app" -w /app devirank:latest \
-  python /app/scr/run_devirank.py \
+  python /app/scr/run_comparison.py \
     --disease_file /app/data/disease_target_genes.csv \
     --output_folder /app/experiments/results_DEviRank_vs_Nbisdes
+sudo chown -R "$USER:$USER" ~/DEviRank/experiments/results_DEviRank_vs_Nbisdes
 ```
 
 without Docker:
@@ -278,7 +281,7 @@ echo "Using repository at: $REPO_DIR"
 cd "$REPO_DIR" || exit 1
 conda activate devirank
 
-python ./scr/run_devirank.py \
+python ./scr/run_comparison.py\
   --disease_file data/disease_target_genes.csv \
   --output_folder experiments/results_DEviRank_vs_Nbisdes
 ```
