@@ -195,7 +195,7 @@ echo "Using repository at: $REPO_DIR"
 sudo docker run --rm -v "$REPO_DIR:/app" -w /app devirank:latest \
   python /app/scr/run_devirank.py \
     --disease_file /app/data/disease_target_genes.csv \
-    --sampling_size 10 \
+    --sampling_size 1 \
     --output_folder /app/experiments/results_quick_test
 ```
 
@@ -211,7 +211,7 @@ conda activate devirank
 
 python ./scr/run_devirank.py \
   --disease_file data/disease_target_genes.csv \
-  --sampling_size 10 \
+  --sampling_size 1 \
   --output_folder experiments/results_quick_test
 ```
 
