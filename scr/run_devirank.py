@@ -7,21 +7,18 @@ import os
 import sys
 from pathlib import Path
 
-# Ensure repo root (/app in Docker) is on sys.path
-REPO_ROOT = Path(os.environ.get("REPO_DIR", "/app")).resolve()
+REPO_ROOT = Path(os.environ.get("REPO_DIR", Path(__file__).resolve().parents[1])).resolve()
 sys.path.insert(0, str(REPO_ROOT))
 
-# Now import your core module file (adjust filename if needed)
-# If your core file is /app/scr/DEviRank.py, do this:
 from scr.DEviRank import suggested_drugs_DEviRank  # noqa: E402
 
 
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--disease_file", required=True)
-    p.add_argument("--sampling_size", required=True, type=int)
+    p.add_argument("--sampling_size", default=100000, type=int)
     p.add_argument("--output_folder", required=True)
-    p.add_argument("--chunk_size", default=1000, type=int)
+    p.add_argument("--chunk_size", default=10, type=int)
     p.add_argument("--max_drugs", default=None, type=int)
     p.add_argument("--p_value", default=0.05, type=float)
     p.add_argument("--z_score", default=-1.96, type=float)
@@ -31,8 +28,8 @@ def parse_args():
 def main() -> int:
     args = parse_args()
 
-    # In your docker command you mount repo to /app
-    os.environ.setdefault("REPO_DIR", "/app")
+    # If you set REPO_DIR, respect it. Otherwise infer from this file.
+    os.environ.setdefault("REPO_DIR", str(REPO_ROOT))
 
     suggested_drugs_DEviRank(
         disease_file=args.disease_file,
