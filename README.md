@@ -228,7 +228,7 @@ sudo chown -R "$USER:$USER" /home/shashemi/DEviRank/experiments
 sudo docker run --rm -v "$REPO_DIR:/app" -w /app devirank:latest \
   python /app/scr/run_devirank.py \
     --disease_file /app/data/disease_target_genes.csv \
-    --output_folder /app/experiments/results_quick_test
+    --output_folder /app/experiments/results_DEviRank
 ```
 
 without Docker:
@@ -243,7 +243,7 @@ conda activate devirank
 
 python ./scr/run_devirank.py \
   --disease_file data/disease_target_genes.csv \
-  --output_folder experiments/results_quick_test
+  --output_folder experiments/results_DEviRank
 ```
   
 Output:
@@ -261,24 +261,26 @@ cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
 echo "Using repository at: $REPO_DIR"
 
-sudo docker run --rm \
-  -v "$REPO_DIR:/app" \
-  devirank:latest \
-  python scr/run_comparison.py\
-    --disease_file /app/data/disease_target_genes.csv \  
+sudo chown -R "$USER:$USER" /home/shashemi/DEviRank/experiments
+sudo docker run --rm -v "$REPO_DIR:/app" -w /app devirank:latest \
+  python /app/scr/run_devirank.py \
+    --disease_file /app/data/disease_target_genes.csv \
     --output_folder /app/experiments/results_DEviRank_vs_Nbisdes
 ```
 
- without Docker:
+without Docker:
 
 ```bash
 cd ~
 REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
 echo "Using repository at: $REPO_DIR"
 
-python scr/run_comparison.py \
-  --disease_file /app/data/disease_target_genes.csv \  
-  --output_folder /app/experiments/results_DEviRank_vs_Nbisdes
+cd "$REPO_DIR" || exit 1
+conda activate devirank
+
+python ./scr/run_devirank.py \
+  --disease_file data/disease_target_genes.csv \
+  --output_folder experiments/results_DEviRank_vs_Nbisdes
 ```
 
 Output:
