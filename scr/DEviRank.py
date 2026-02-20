@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-Created on May 14 2024
-
-@author: shashemi
+@author: seirana
 """
 
 from __future__ import annotations
