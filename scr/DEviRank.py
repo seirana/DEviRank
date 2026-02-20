@@ -177,7 +177,7 @@ def write_csv(
 FINITE_INFINITY = 20000  # > longest path in gene network
 DEFAULT_SEED = 452456
 DEFAULT_MIN_BIN_SIZE = 100
-DEFAULT_CHUNK_SIZE = 1000
+DEFAULT_CHUNK_SIZE = 10
 
 
 # ======================================================================================
@@ -239,15 +239,17 @@ def matrix_to_network_DEviRank() -> nx.Graph:
     pcg = read_csv(devi_data_dir() / "protein_coding_genes_ENSEMBL")
     ppi = read_csv(devi_data_dir() / "gene_gene_PPI700_ENSEMBL")
     dtogi = read_csv(devi_data_dir() / "DtoGI_ENSEMBL(filtered)")
+    disease = read_csv(devi_data_dir() / "disease_target_genes")
 
     if "Gene stable ID" not in pcg.columns:
         raise ValueError("protein_coding_genes_ENSEMBL must include column 'Gene stable ID'")
-
+        
     genes_pcg = pcg["Gene stable ID"]
     genes_ppi = pd.concat([ppi["gene1"], ppi["gene2"]])
     genes_dtogi = _genes_from_target_matrix(dtogi)
+    genes_disease = disease["ENSEMBL ID"]
 
-    all_genes = pd.concat([genes_pcg, genes_ppi, genes_dtogi]).drop_duplicates()
+    all_genes = pd.concat([genes_pcg, genes_ppi, genes_dtogi, genes_disease]).drop_duplicates()
 
     return _build_graph_from_ppi(ppi, include_all_genes=all_genes)
 
@@ -712,35 +714,6 @@ def DEviRankVSNbisdes(*, out_dir: PathLike):
 # Drug scoring
 # ======================================================================================
 
-def matrix_to_network(
-    drug_genes: pd.DataFrame,
-    ppi: pd.DataFrame,
-    disease_genes: pd.DataFrame,
-    pc_genes: pd.DataFrame,
-) -> nx.Graph:
-    network = nx.Graph()
-
-    all_drug_genes = pd.DataFrame(drug_genes.values.ravel(), columns=["merged"])
-    genes = pd.concat(
-        [
-            pc_genes["Gene stable ID"],
-            ppi["gene1"],
-            ppi["gene2"],
-            disease_genes["ENSEMBL ID"],
-            all_drug_genes["merged"],
-        ],
-        axis=0,
-    ).drop_duplicates().sort_values()
-
-    for g in genes:
-        network.add_node(g)
-
-    for g1, g2 in zip(ppi["gene1"], ppi["gene2"]):
-        network.add_edge(g1, g2)
-
-    return network
-
-
 def weight_a_disease_gene(network: nx.Graph, disease_gene: str, ppi: pd.DataFrame) -> float:
     weight = 1.0
     if network.has_node(disease_gene) and any(True for _ in network.neighbors(disease_gene)):
@@ -840,7 +813,7 @@ def drug_scoring(
     drugs = read_csv(devi_data_dir() / "drugs(filtered)")
     pc_genes = read_csv(devi_data_dir() / "protein_coding_genes_ENSEMBL")
 
-    ppi = read_csv(devi_data_dir() / "gene_gene_PPI700_ENSEMBL").fillna(0)
+    ppi = read_csv(devi_data_dir() / "gene_gene_PPI700_ENSEMBL")
     if "max_ppi" in ppi.columns:
         ppi["max_ppi"] = ppi["max_ppi"] / 1000
 
@@ -854,7 +827,7 @@ def drug_scoring(
         drugs = drugs.iloc[:n, :].reset_index(drop=True)
         candidate_drugs = candidate_drugs.iloc[:n, :].reset_index(drop=True)
 
-    network = matrix_to_network(drug_genes, ppi, disease_genes, pc_genes)
+    network = matrix_to_network_DEviRank()
 
     scores = score_drugs(
         network, dgi, drug_genes, drugs, ppi, disease_genes, candidate_drugs,
@@ -963,8 +936,7 @@ def suggested_drugs_DEviRank(
         which_method="DEviRank",
         chunk_size=chunk_size,
         max_drugs=max_drugs,
-    )
-    
+    )    
     fill_rows_from_repeated_index(
         out_dir=out_dir,
         which_method="DEviRank",
@@ -1001,6 +973,16 @@ def compare_DEviRank_Nbisdes(
         chunk_size=chunk_size,
         max_drugs=max_drugs,
     )
+    fill_rows_from_repeated_index(
+        out_dir=out_dir,
+        which_method="DEviRank",
+        max_drugs=max_drugs,
+    )
+    fill_rows_from_repeated_index(
+        out_dir=out_dir,
+        which_method="Nbisdes",
+        max_drugs=max_drugs,
+    )
     DEviRankVSNbisdes(out_dir=out_dir)
 
 
@@ -1010,4 +992,3 @@ def compare_DEviRank_Nbisdes(
 
 if __name__ == "__main__":
     pass
-    
