@@ -81,8 +81,10 @@ DEviRank/
 │   └── repeated(filtered).csv
 │
 ├── docs/
-│   ├── DEviRank Overview.png  
-│   └── DeviRank Psudocode.txt 
+│   ├── DEviRank Overview.png   
+│   ├── DeviRank Psudocode.txt 
+│   ├── Network-Based Distance Between Drug and Disease Targets (Guney et al.).pdf
+│   └── Toy Example Illustration.pdf
 │
 ├── experiments/
 │   ├── results_devirank/  # DEviRank output
