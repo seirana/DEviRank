@@ -94,7 +94,7 @@ DEviRank/
 │
 ├── supplementary/
 │   ├── DEviRank Overview.png
-│   ├── Supplementary file.xlsx
+│   ├── Supplementary file.pdf
 │   └── Supplementary tables.xlsx
 │
 ├── requirements.txt
