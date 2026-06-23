@@ -3,6 +3,7 @@ Input:
     T ⊆ V               // Disease target proteins
     S ⊆ V               // Drug target proteins
     DGI(s)              // Drug–gene interaction score for each s ∈ S
+    N                  // Number of target genes per drug
 
 Output:
     w_d(d)              // Final drug score
@@ -28,5 +29,5 @@ w_d(d) ← 0
 for each s ∈ S do
     w_d(d) ← w_d(d) + DGI(s) × w_s(s)
 end for
-
+w_d(d) ← w_d(d)/n(d)  // n(d) ∈ N do
 return w_d(d)
