@@ -80,11 +80,6 @@ DEviRank/
 │   ├── proteins.csv      
 │   └── repeated(filtered).csv
 │
-├── docs/
-│   ├── DEviRank Overview.png   
-│   ├── DeviRank Psudocode.txt 
-│   ├── Network-Based Distance Between Drug and Disease Targets (Guney et al.).pdf
-│   └── Toy Example Illustration.pdf
 │
 ├── experiments/
 │   ├── results_devirank/  # DEviRank output
@@ -98,7 +93,8 @@ DEviRank/
 │   └── run_comparision.py
 │
 ├── supplementary/
-│   ├── DeviRank_TimeComplexityProof.pdf
+│   ├── DEviRank Overview.png
+│   ├── Supplementary file.xlsx
 │   └── Supplementary tables.xlsx
 │
 ├── requirements.txt
