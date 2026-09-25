@@ -1,15 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-@author: seirana
-"""
-
-from __future__ import annotations
-
-
-
-"""
 DEviRank / Nbisdes proximity + scoring pipeline.
+
+Author: Seirana Hashemi
 
 Spyder/IDE-friendly design:
   - disease_file: can be anywhere (absolute/relative path)
@@ -30,6 +24,8 @@ This version includes:
       distance(x,x)=0 even if x not in G
       otherwise if either node missing => FINITE_INFINITY (no graph mutation)
 """
+
+from __future__ import annotations
 
 import math
 import os
@@ -370,8 +366,8 @@ def get_degree_equivalents(seeds: Sequence[str], bins, g: nx.Graph):
     seed_to_nodes = {}
     for seed in seeds:
         d = g.degree(seed)
-        for l, h, nodes in bins:
-            if l <= d <= h:
+        for low, high, nodes in bins:
+            if low <= d <= high:
                 mod_nodes = list(nodes)
                 if seed in mod_nodes:
                     mod_nodes.remove(seed)
@@ -552,20 +548,20 @@ def calculate_proximity_collecting(
     if "drug_name" not in drugs.columns:
         raise ValueError("drugs(filtered) must contain column 'drug_name'")
 
-    l = len(drug_to_targets)
+    n_drugs = len(drug_to_targets)
     if max_drugs is not None:
-        l = min(l, int(max_drugs))
+        n_drugs = min(n_drugs, int(max_drugs))
 
     which_method = str(which_method)
     if which_method == "DEviRank":
         network = matrix_to_network_DEviRank()
         sampling_eff = 100000 if sampling is None else int(sampling)
-        parts = int(math.ceil(l / chunk_size))
+        parts = int(math.ceil(n_drugs / chunk_size))
         chunk = int(chunk_size)
     elif which_method == "Nbisdes":
         network = matrix_to_network_Nbisdes()
         sampling_eff = 1000
-        parts = int(math.ceil(l / chunk_size))
+        parts = int(math.ceil(n_drugs / chunk_size))
         chunk = int(chunk_size)
     else:
         raise ValueError("which_method must be 'DEviRank' or 'Nbisdes'")
@@ -584,7 +580,7 @@ def calculate_proximity_collecting(
 
     for part in range(parts):
         b = part * chunk
-        e = min((part + 1) * chunk, l)
+        e = min((part + 1) * chunk, n_drugs)
 
         output = pd.DataFrame(index=range(e - b), columns=cols)
 
