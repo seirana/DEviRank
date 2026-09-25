@@ -1,7 +1,5 @@
 import json
 import random
-from pathlib import Path
-
 import networkx as nx
 import pandas as pd
 import pytest
@@ -103,7 +101,9 @@ def test_degree_matched_sampling_is_seeded_and_does_not_change_global_rng():
         seed=7,
     )
 
-    normalize = lambda samples: [sorted(sample) for sample in samples]
+    def normalize(samples):
+        return [sorted(sample) for sample in samples]
+
     assert normalize(sample_1) == normalize(sample_2)
 
 
