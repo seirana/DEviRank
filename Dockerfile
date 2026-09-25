@@ -1,26 +1,20 @@
 # syntax=docker/dockerfile:1
 FROM python:3.12-slim
 
-# System deps (keep minimal; add others only if needed)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
-    build-essential \
-    ca-certificates \
-    curl \
-    wget \
-    unzip \
- && rm -rf /var/lib/apt/lists/*
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
 
-# Workdir inside container
 WORKDIR /app
 
-# Install Python requirements first (better caching)
-COPY requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt
+COPY pyproject.toml README.md LICENSE ./
+COPY scr ./scr
+COPY data ./data
 
-# Copy repo code
-COPY . /app
+RUN python -m pip install --upgrade pip \
+    && python -m pip install .
 
-# Default command: show help / no-op (we will override in run scripts)
-CMD ["python3", "-c", "print('Container ready. Use the provided run scripts.')"]
+RUN mkdir -p /app/experiments
 
+ENTRYPOINT ["devirank"]
+CMD ["--help"]

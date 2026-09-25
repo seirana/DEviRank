@@ -14,7 +14,8 @@ from pathlib import Path
 REPO_ROOT = Path(os.environ.get("REPO_DIR", Path(__file__).resolve().parents[1])).resolve()
 sys.path.insert(0, str(REPO_ROOT))
 
-from scr.DEviRank import suggested_drugs_DEviRank  # noqa: E402
+from scr.DEviRank import DEFAULT_SEED, suggested_drugs_DEviRank  # noqa: E402
+from scr.reproducibility import write_run_metadata  # noqa: E402
 
 
 def parse_args():
@@ -26,6 +27,7 @@ def parse_args():
     p.add_argument("--max_drugs", default=None, type=int)
     p.add_argument("--p_value", default=0.05, type=float)
     p.add_argument("--z_score", default=-1.96, type=float)
+    p.add_argument("--seed", default=DEFAULT_SEED, type=int)
     return p.parse_args()
 
 
@@ -43,7 +45,15 @@ def main() -> int:
         max_drugs=args.max_drugs,
         p_value=args.p_value,
         z_score=args.z_score,
+        seed=args.seed,
     )
+
+    write_run_metadata(
+        args.output_folder,
+        command="run_devirank",
+        parameters=vars(args),
+    )
+
     print(f"Done. Results in: {Path(args.output_folder).resolve()}")
     return 0
 

@@ -2,387 +2,258 @@
 
 **Evidence-Weighted Drug Ranking via Network-Based Proximity Analysis**
 
-DEviRank is a network-based drug prioritization framework that ranks candidate drugs according to their network proximity to disease-associated genes in a protein–protein interaction (PPI) network. Building on classical interactome-based proximity measures, DEviRank aggregates evidence from bounded simple paths between drug targets and disease genes and integrates this with curated drug–gene interaction confidence scores. The resulting formulation provides an interpretable, evidence-weighted ranking while enabling statistical assessment through degree-preserving random sampling.
+DEviRank is a network-based drug-prioritization framework that ranks candidate drugs according to their network proximity to disease-associated genes in a protein-protein interaction (PPI) network. It combines bounded path-based network evidence with curated drug-gene interaction confidence scores and evaluates network proximity using degree-matched random sampling.
 
-This repository accompanies the DEviRank method described in my LNCS publication and provides a fully reproducible implementation, supplementary analyses, and documentation.
+This repository accompanies the DEviRank method and is organized so the computational workflow can be run from the command line, in Docker, or imported as Python code.
 
----
+## Method overview
 
-## Table of Contents
+The implementation follows three main ideas:
 
-- [DEviRank](#devirank)
-- [🔬 Method Overview](#-method-overview)
-- [✨ Key Features](#-key-features)
-- [📂 Repository Structure](#-repository-structure)
-- [🚀 Quick Start](#-quick-start)
-  - [1. ⬇️ Download System Requirements](#1-⬇️-download-system-requirements)
-  - [2. 📥 Clone the Repository](#2-📥-clone-the-repository)
-  - [3. ⚙️ Installation](#3-⚙️-installation)
-  - [4. 🧬 Usage](#4-🧬-usage)
-    - [4.1. 📑 Prepare Inputs](#41-📑-prepare-inputs)
-    - [4.2. ▶️ Run DEviRank](#42-▶️-run-devirank)
-- [📊 Statistical Evaluation](#-statistical-evaluation)
-- [⏱️ Computational Complexity](#️-computational-complexity)
-- [🔁 Reproducibility](#-reproducibility)
-- [📄 Citation](#-citation)
-- [📜 License](#-license)
-- [🤝 Contact](#-contact)
-- [🧠 Notes for Reviewers](#-notes-for-reviewers)
+1. **Disease-gene weighting** — disease-associated genes receive weights based on local PPI connectivity.
+2. **Bounded path-based target scoring** — drug targets are connected to disease genes through bounded simple paths, with PPI confidence contributing to path weights.
+3. **Drug-level evidence aggregation** — target-level evidence is combined with curated drug-gene interaction confidence scores.
 
----
+The code also contains a comparison workflow for the Nbisdes network-proximity baseline.
 
-## 🔬 Method Overview
+## Repository layout
 
-DEviRank builds on the observation that therapeutically relevant drugs often modulate a subset of disease-associated proteins located within a local network neighborhood, rather than targeting the entire disease module.
-
-The method consists of three main components:
-
-1. **Disease Gene Weighting**  
-   Each disease-associated gene is assigned a weight based on its local connectivity within the PPI network, reflecting its relative network influence.
-
-2. **Bounded Path-Based Target Scoring**  
-   For each drug target gene, DEviRank aggregates evidence from all simple paths of bounded length (≤ 3) connecting the drug target to disease-associated genes.  
-   Each path contribution is weighted by:
-   - PPI interaction confidence (edge weights)
-   - the precomputed importance of the corresponding disease gene
-
-3. **Drug-Level Evidence Aggregation**  
-   Drug-level scores are obtained by combining target-level scores using curated drug–gene interaction (DGI) confidence, producing an interpretable, evidence-weighted ranking.
-
-Unlike end-to-end learning approaches, DEviRank is explicitly model-driven and emphasizes interpretability, biological transparency, and statistical validation through degree-preserving random sampling. This makes the framework particularly suitable for settings with limited labeled data or where methodological transparency is required.
-
----
-
-## ✨ Key Features
-
-- Explicit evidence-weighted scoring formulation combining network topology and interaction confidence  
-- Integration of weighted PPI edges and curated drug–gene interaction (DGI) confidence  
-- Aggregation over bounded simple paths (maximum length = 3) to capture local network effects  
-- Degree-preserving random sampling for statistically grounded proximity assessment  
-- Embarrassingly parallel per-drug evaluation for scalable computation  
-- Fully reproducible and transparent research implementation
-
----
-
-## 📂 Repository Structure
-
-```
+```text
 DEviRank/
-│
-├── data/
-│   ├── disease_target_genes.csv
-│   ├── drugs(filtered).csv
-│   ├── drugs_links.csv
-│   ├── DtoGI_ENSEMBL(filtered).csv
-│   ├── DtoGI_scores(filtered).csv
-│   ├── gene_gene_PPI700_ENSEMBL.csv
-│   ├── protein_coding_genes_ENSEMBL.csv
-│   ├── proteins.csv      
-│   └── repeated(filtered).csv
-│
-│
-├── experiments/
-│   ├── results_devirank/  # DEviRank output
-│   ├── results_quick_test/ # Quick-test output (DEviRank)
-│   └── results_DEviRank_vs_Nbisdes/ # Comparison output: DEviRank vs Nbisdes
-│
-├── scr/
+├── data/                       repository input tables
+├── experiments/                generated run outputs
+├── scr/                        implementation and CLI runners
 │   ├── DEviRank.py
-│   ├── __init__.py
-│   ├── run_devirank.py      
-│   └── run_comparision.py
-│
-├── supplementary/
-│   ├── DEviRank Overview.png
-│   ├── Supplementary file.pdf
-│   └── Supplementary tables.xlsx
-│
+│   ├── reproducibility.py
+│   ├── run_devirank.py
+│   └── run_comparison.py
+├── supplementary/              paper/supplementary artifacts
+├── tests/                      automated unit tests
+├── .github/workflows/ci.yml    continuous integration
+├── pyproject.toml              package + development configuration
 ├── requirements.txt
-├── LICENSE
 ├── Dockerfile
+├── LICENSE
 └── README.md
 ```
 
----
+The historical directory name `scr/` is retained for compatibility with the accompanying research materials.
 
-## 🚀 Quick Start
+## Requirements
 
-Requirements
+- Python 3.10+
+- NumPy
+- pandas
+- NetworkX
 
-* Python ≥ 3.9
-* numpy ≥ 1.24
-* pandas ≥ 2.0
-* networkx ≥ 3.1
+The package metadata and dependency ranges are defined in `pyproject.toml`.
 
-### 1. ⬇️ Download system requirements 
+## Installation
+
+Clone the repository and create an isolated environment:
 
 ```bash
-sudo apt update
-sudo apt install -y \
-    git \
-    build-essential \
-    wget curl unzip \
-    python3.12 python3.12-venv
-```
-    
-### 2. 📥 Clone the repository
-```bash
-cd ~
 git clone https://github.com/seirana/DEviRank.git
 cd DEviRank
-```
 
-### ⚙️ 3. Installation
+python -m venv .venv
+source .venv/bin/activate
 
-DEviRank supports two installation methods.
-
-*Option A — Native setup (for HPC / no-Docker environments)*
-```bash
-cd ~
-REPO_DIR="$(find . -maxdepth 5 -type f -name  requirements.txt -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
-echo "Using repo: $REPO_DIR"
-cd "$REPO_DIR"
-
-conda create -n devirank python=3.12
-conda activate devirank
 python -m pip install --upgrade pip
-pip install -r requirements.txt
+python -m pip install -e .
 ```
 
-*Option B — 🐳 Docker (Recommended for Reproducibility)*
+For development and testing:
 
 ```bash
-cd ~
-REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
-echo "Using repo: $REPO_DIR"
-cd "$REPO_DIR"
-
-sudo docker build -t devirank:latest .
+python -m pip install -e ".[dev]"
 ```
 
-### 4. 🧬 Usage
+## Inputs
 
-#### 4.1. 📑 Prepare Inputs
+The default example inputs are stored under `data/`. The main workflow expects:
 
-You will need the following input data:
+- a disease-gene CSV with an `ENSEMBL ID` column;
+- a PPI table containing `gene1`, `gene2`, and the confidence values used by the scoring code;
+- the drug-target matrix;
+- the corresponding drug-gene interaction confidence matrix;
+- a drug-name table;
+- a protein-coding-gene table;
+- the repeated-row mapping used to avoid recomputing duplicate target profiles.
 
-* A set of disease-associated genes (replace it with your desired genes)
+See `data/README.md` for file-level roles and schema notes.
 
-* A weighted protein–protein interaction (PPI) network,
+## Quick test
 
-* Curated drug–gene interaction data with confidence scores,
-
-* A gene–protein mapping table (retrieved from Ensembl BioMart), and
-
-* All required input files are available in the ./data/ directory.
-  
-
-All experiments are executed inside Docker to ensure reproducibility and consistent environments.
-
-#### 4.2 ▶️ Run DEviRank
-
-#### Option A — Quick Test (Sanity Check, Minutes)
-
-Runs a small random sampling to verify installation and pipeline integrity.
+A small run is useful for checking installation and pipeline integrity before a publication-scale experiment:
 
 ```bash
-cd ~
-REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
-echo "Using repository at: $REPO_DIR"
-
-sudo chown -R "$USER:$USER" ~/DEviRank/experiments
-sudo docker run --rm -v "$REPO_DIR:/app" -w /app devirank:latest \
-  python /app/scr/run_devirank.py \
-    --disease_file /app/data/disease_target_genes.csv \
-    --sampling_size 1 \
-    --output_folder /app/experiments/results_quick_test
-sudo chown -R "$USER:$USER" ~/DEviRank/experiments/results_quick_test
-```
-
-without Docker:
-
-```bash
-cd ~
-REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
-echo "Using repository at: $REPO_DIR"
-
-cd "$REPO_DIR" || exit 1
-conda activate devirank
-
-python ./scr/run_devirank.py \
+devirank \
   --disease_file data/disease_target_genes.csv \
-  --sampling_size 1 \
-  --output_folder experiments/results_quick_test
+  --sampling_size 10 \
+  --max_drugs 2 \
+  --output_folder experiments/quick_test
 ```
 
-#### Option B — Full Drug Ranking (Hours to Days)
+The default random seed is `452456`. It can be changed explicitly:
 
-High-precision Monte Carlo estimation.
 ```bash
-cd ~
-REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
-echo "Using repository at: $REPO_DIR"
-
-sudo chown -R "$USER:$USER" ~/DEviRank/experiments
-sudo docker run --rm -v "$REPO_DIR:/app" -w /app devirank:latest \
-  python /app/scr/run_devirank.py \
-    --disease_file /app/data/disease_target_genes.csv \
-    --output_folder /app/experiments/results_DEviRank
-sudo chown -R "$USER:$USER" ~/DEviRank/experiments/results_DEviRank
+devirank \
+  --disease_file data/disease_target_genes.csv \
+  --sampling_size 10 \
+  --max_drugs 2 \
+  --seed 12345 \
+  --output_folder experiments/quick_test
 ```
 
-without Docker:
+Each CLI run writes `run_metadata.json` next to the results. It records the command, parameters, random seed, Python version, platform, and core package versions.
+
+## Full DEviRank run
+
+The default DEviRank sampling size is 100,000:
 
 ```bash
-cd ~
-REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
-echo "Using repository at: $REPO_DIR"
-
-cd "$REPO_DIR" || exit 1
-conda activate devirank
-
-python ./scr/run_devirank.py \
+devirank \
   --disease_file data/disease_target_genes.csv \
   --output_folder experiments/results_DEviRank
 ```
-  
-Output:
 
-* Ranked list of drugs
-* z-scores and p-values from random sampling
-* Intermediate statistics
+A full run can be computationally expensive. The quick-test settings above should be used for installation checks and CI-style validation.
 
-#### Option C — Comparison with Network Proximity–Based Baseline
-
-To compare DEviRank against the shortest-path proximity baseline:
+## Compare DEviRank with Nbisdes
 
 ```bash
-cd ~
-REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
-echo "Using repository at: $REPO_DIR"
-
-sudo chown -R "$USER:$USER" ~/DEviRank/experiments
-sudo docker run --rm -v "$REPO_DIR:/app" -w /app devirank:latest \
-  python /app/scr/run_comparison.py \
-    --disease_file /app/data/disease_target_genes.csv \
-    --output_folder /app/experiments/results_DEviRank_vs_Nbisdes
-sudo chown -R "$USER:$USER" ~/DEviRank/experiments/results_DEviRank_vs_Nbisdes
-```
-
-without Docker:
-
-```bash
-cd ~
-REPO_DIR="$(find "$HOME" -maxdepth 5 -type f -name Dockerfile -path '*/DEviRank/*' -print -quit | xargs -r dirname)"
-echo "Using repository at: $REPO_DIR"
-
-cd "$REPO_DIR" || exit 1
-conda activate devirank
-
-python ./scr/run_comparison.py\
+devirank-compare \
   --disease_file data/disease_target_genes.csv \
+  --sampling_size 1000 \
   --output_folder experiments/results_DEviRank_vs_Nbisdes
 ```
 
-Output:
+The comparison command uses the same reproducible seed mechanism and also writes run metadata.
 
-* z-scores and p-values from random sampling
-* Intermediate statistics
+## Running the original scripts directly
 
----
+The script entry points remain available:
 
-## 📊 Statistical Evaluation
+```bash
+python scr/run_devirank.py \
+  --disease_file data/disease_target_genes.csv \
+  --sampling_size 10 \
+  --max_drugs 2 \
+  --output_folder experiments/quick_test
 
-DEviRank assesses drug–disease proximity using degree-preserving random sampling in the PPI network. For each drug, random protein sets are generated that match the size and degree distribution of the original drug target set, ensuring a biologically meaningful null model.
-
-Random sampling is used to:
-- estimate null distributions of network proximity scores,
-- compute z-scores and empirical p-values,
-- evaluate stability and convergence of the ranking results.
-
-### Sampling Sizes
-
-To assess robustness, we report results using three sampling regimes:
-
-- **1k samples** – baseline configuration consistent with prior interactome-based studies  
-- **10k samples** – computationally efficient and empirically stable  
-- **100k samples** – high-resolution reference for convergence analysis  
-
-A detailed robustness and convergence analysis, including variability metrics and theoretical considerations, is provided in the supplementary material.
-
----
-
-## ⏱️ Computational Complexity
-
-DEviRank enumerates simple paths of bounded length (L ≤ 3) between drug target genes and disease-associated genes in the PPI network.
-
-Let:
-- |S| denote the number of drug target genes,
-- |T| denote the number of disease-associated genes,
-- Δ denote the maximum node degree in the PPI network.
-
-The computation of disease gene weights scales with the local neighborhood size and requires:
-
-O(∑_{t ∈ T} deg(t)).
-
-Because path enumeration is restricted to simple paths of maximum length 3, the number of candidate paths originating from a drug target s is bounded by O(deg(s) Δ²). Summing over all s ∈ S yields a per-drug runtime of:
-
-O(∑_{t ∈ T} deg(t) + ∑_{s ∈ S} deg(s) Δ²),
-
-and in the worst case:
-
-O(|S| Δ³).
-
-Since drug evaluations are independent, DEviRank is embarrassingly parallel and scales linearly with the number of drugs.
-
-A step-by-step complexity derivation is provided in:
-
-```
-supplementary/time_complexity.pdf
+python scr/run_comparison.py \
+  --disease_file data/disease_target_genes.csv \
+  --sampling_size 10 \
+  --max_drugs 2 \
+  --output_folder experiments/comparison_quick_test
 ```
 
----
+No hard-coded user home directory is required. Repository-local data are resolved relative to the cloned project, or the root can be supplied through `REPO_DIR` for IDE/HPC workflows.
 
-## 🔁 Reproducibility
+## Docker
 
-All experiments reported in the paper can be reproduced using this repository.
+Build:
 
-To ensure reproducibility:
-
-* random seeds are fixed
-* sampling sizes are configurable
-* intermediate results are logged
-
----
-
-## 📄 Citation
-
-If you use DEviRank in your research, please cite:
-
-```
-[Will be added after publication]
+```bash
+docker build -t devirank:latest .
 ```
 
----
+Run a quick test while preserving outputs on the host:
 
-## 📜 License
+```bash
+mkdir -p experiments
 
-This project is released under the **MIT License**.
-See the `LICENSE` file for details.
+docker run --rm \
+  -v "$PWD/experiments:/app/experiments" \
+  devirank:latest \
+  --disease_file /app/data/disease_target_genes.csv \
+  --sampling_size 10 \
+  --max_drugs 2 \
+  --output_folder /app/experiments/quick_test
+```
 
----
+Run the comparison entry point:
 
-## 🤝 Contact
+```bash
+docker run --rm \
+  --entrypoint devirank-compare \
+  -v "$PWD/experiments:/app/experiments" \
+  devirank:latest \
+  --disease_file /app/data/disease_target_genes.csv \
+  --sampling_size 10 \
+  --max_drugs 2 \
+  --output_folder /app/experiments/comparison_quick_test
+```
 
-For questions, issues, or collaboration requests, please open a GitHub issue or contact:
+## Statistical evaluation
 
-**Seirana Hashemi**
-GitHub: [https://github.com/seirana](https://github.com/seirana)
+DEviRank uses degree-matched random sampling to estimate a null distribution of network proximity scores. The implementation reports:
 
----
+- observed proximity;
+- mean and standard deviation of the sampled null distribution;
+- z-score;
+- empirical p-value;
+- target and disease-gene counts;
+- observed shortest-distance values.
 
-## 🧠 Notes for Reviewers
+The current empirical p-value formula is preserved from the research implementation. This modernization does **not** silently change the published/statistical method.
 
-* This repository serves as **supplementary material** for the associated LNCS paper.
-* All design choices are explicitly documented.
-* The implementation favors **clarity and interpretability** over black-box optimization.
+The sampling seed is now exposed as an explicit parameter so runs can be repeated exactly under the same software and input conditions.
+
+## Reproducibility
+
+Reproducibility is supported through:
+
+- configurable and explicit random seed;
+- machine-readable `run_metadata.json`;
+- bounded dependency ranges;
+- Docker execution;
+- automated tests;
+- CI across Python 3.10, 3.11, and 3.12;
+- repository-relative data paths;
+- generated outputs kept separate from source code.
+
+See `REPRODUCIBILITY.md` for the recommended workflow.
+
+## Testing and CI
+
+Run the test suite:
+
+```bash
+python -m pytest
+```
+
+Run correctness-oriented lint checks:
+
+```bash
+python -m ruff check scr tests
+```
+
+The automated tests cover portable path resolution, graph construction validation, shortest-path edge cases, deterministic random sampling, CSV I/O, CLI defaults, and experiment metadata.
+
+GitHub Actions runs the checks on Python 3.10, 3.11, and 3.12.
+
+The CI suite intentionally uses small synthetic inputs. It does not attempt the full 100k-sample research experiment on every commit.
+
+## Computational complexity
+
+DEviRank uses bounded path enumeration around drug targets and disease genes. Runtime depends strongly on target-set size, local node degree, network density, and sampling size. Drug evaluations are independent at the workflow level, although the current reference implementation executes them serially to keep the implementation transparent.
+
+## Research-software scope
+
+This repository is research software. The quality upgrade focuses on portability, testing, provenance, reproducibility, and maintainability while preserving the scientific scoring logic and default seed.
+
+The repository does not claim that a ranked drug is clinically effective. Ranking results require biological interpretation and appropriate downstream validation.
+
+## Citation
+
+If you use DEviRank in research, cite the associated publication when the final citation is available.
+
+## License
+
+MIT License. See `LICENSE`.
+
+## Contact
+
+For questions or reproducibility issues, open a GitHub issue.
