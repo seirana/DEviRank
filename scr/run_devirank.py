@@ -47,6 +47,13 @@ def main() -> int:
         z_score=args.z_score,
         seed=args.seed,
     )
+
+    write_run_metadata(
+        args.output_folder,
+        command="run_devirank",
+        parameters=vars(args),
+    )
+
     print(f"Done. Results in: {Path(args.output_folder).resolve()}")
     return 0
 
