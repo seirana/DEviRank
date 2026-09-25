@@ -20,7 +20,7 @@ Optional environment variable:
   - REPO_DIR : repo root (auto-inferred if not set)
 
 Repo root definition:
-  - a folder that contains BOTH 'data/' and 'experiments/'.
+  - a folder that contains the repository-local 'data/' and 'scr/' directories.
 
 This version includes:
   - max_drugs support (quick tests on first N drugs)
@@ -64,22 +64,21 @@ def _anchor_path() -> Path:
 
 
 def _find_repo_root(start: Path) -> Path:
-    """Walk up from `start` until a folder containing both data/ and experiments/ is found."""
+    """Walk upward until the DEviRank repository root is found."""
     start = start if start.is_dir() else start.parent
     for p in [start] + list(start.parents):
-        if (p / "data").exists() and (p / "experiments").exists():
+        if (p / "data").is_dir() and (p / "scr").is_dir():
             return p
     raise FileNotFoundError(
         f"Could not find repo root starting from: {start}\n"
-        "Expected folders: <repo>/data and <repo>/experiments.\n"
-        "Fix options:\n"
-        "  1) Set env var REPO_DIR to your repo root, e.g. os.environ['REPO_DIR']='/path/to/DEviRank'\n"
-        "  2) Set Spyder working directory to the repo root."
+        "Expected directories: <repo>/data and <repo>/scr.\n"
+        "Set REPO_DIR to the repository root or run from inside "
+        "the cloned DEviRank repository."
     )
 
 
 def _resolve_repo_root() -> Path:
-    """Resolve repo root (folder that contains 'data/' and 'experiments/')."""
+    """Resolve the repository root without requiring an output directory."""
     repo_env = os.environ.get("REPO_DIR")
     if repo_env:
         return Path(repo_env).expanduser().resolve()
@@ -391,8 +390,7 @@ def pick_random_nodes_matching_selected(
     connected: bool = False,
     seed: Optional[int] = None,
 ):
-    if seed is not None:
-        random.seed(seed)
+    rng = random.Random(seed)
 
     nodes = list(network.nodes())
     values = []
@@ -406,26 +404,26 @@ def pick_random_nodes_matching_selected(
             for _, equiv_nodes in node_to_equiv.items():
                 if not equiv_nodes:
                     continue
-                chosen = random.choice(equiv_nodes)
+                chosen = rng.choice(equiv_nodes)
                 for _k in range(20):
                     if chosen in nodes_random:
-                        chosen = random.choice(equiv_nodes)
+                        chosen = rng.choice(equiv_nodes)
                 nodes_random.add(chosen)
             values.append(list(nodes_random))
         else:
             if connected:
-                nodes_random = [random.choice(nodes)]
+                nodes_random = [rng.choice(nodes)]
                 k = 1
                 while k < len(nodes_selected):
-                    node_random = random.choice(nodes_random)
-                    neighbor = random.choice(list(network.neighbors(node_random)))
+                    node_random = rng.choice(nodes_random)
+                    neighbor = rng.choice(list(network.neighbors(node_random)))
                     if neighbor in nodes_random:
                         continue
                     nodes_random.append(neighbor)
                     k += 1
                 values.append(nodes_random)
             else:
-                values.append(random.sample(sorted(nodes), len(nodes_selected)))
+                values.append(rng.sample(sorted(nodes), len(nodes_selected)))
 
     return values
 
@@ -458,19 +456,34 @@ def calculate_closest_distance(network: nx.Graph, nodes_from: Iterable[str], nod
     return out
 
 
-def calculate_proximity(network: nx.Graph, nodes_from: Sequence[str], nodes_to: Sequence[str], n_random: int, which_method: str = "DEviRank"):
-    
+def calculate_proximity(
+    network: nx.Graph,
+    nodes_from: Sequence[str],
+    nodes_to: Sequence[str],
+    n_random: int,
+    which_method: str = "DEviRank",
+    *,
+    seed: int = DEFAULT_SEED,
+):
+    if n_random <= 0:
+        raise ValueError("n_random must be greater than 0")
+
     if str(which_method) == "Nbisdes":
         nodes_network = set(network.nodes())
         nodes_from = set(nodes_from) & nodes_network
         nodes_to = set(nodes_to) & nodes_network
 
     if not nodes_from or not nodes_to:
-        if not (nodes_from & nodes_to):
-            return (
-                FINITE_INFINITY, FINITE_INFINITY, FINITE_INFINITY, FINITE_INFINITY, FINITE_INFINITY,
-                len(nodes_from), len(nodes_to), FINITE_INFINITY
-            )
+        return (
+            FINITE_INFINITY,
+            FINITE_INFINITY,
+            FINITE_INFINITY,
+            FINITE_INFINITY,
+            FINITE_INFINITY,
+            len(nodes_from),
+            len(nodes_to),
+            FINITE_INFINITY,
+        )
 
     shortest_distances = calculate_closest_distance(network, nodes_from, nodes_to)
     d = float(np.mean(shortest_distances))
@@ -483,7 +496,7 @@ def calculate_proximity(network: nx.Graph, nodes_from: Sequence[str], nodes_to: 
         bins=bins,
         n_random=n_random,
         min_bin_size=DEFAULT_MIN_BIN_SIZE,
-        seed=DEFAULT_SEED,
+        seed=seed,
     )
 
     nodes_to_fixed = list(nodes_to)
@@ -509,6 +522,7 @@ def calculate_proximity_collecting(
     which_method: str = "DEviRank",
     chunk_size: int = DEFAULT_CHUNK_SIZE,
     max_drugs: Optional[int] = None,
+    seed: int = DEFAULT_SEED,
 ):
     """
     Compute drug proximity scores against a disease gene set.
@@ -519,6 +533,13 @@ def calculate_proximity_collecting(
       - DEviRank: sampling defaults to 100k if not provided; chunked by chunk_size drugs per part.
       - Nbisdes: sampling fixed to 1000; runs as a single chunk.
     """
+    if chunk_size <= 0:
+        raise ValueError("chunk_size must be greater than 0")
+    if sampling is not None and int(sampling) <= 0:
+        raise ValueError("sampling must be greater than 0")
+    if max_drugs is not None and int(max_drugs) <= 0:
+        raise ValueError("max_drugs must be greater than 0")
+
     out_dir = _resolve_out_dir(out_dir)
 
     disease_to_genes = read_csv(disease_file)
@@ -574,7 +595,12 @@ def calculate_proximity_collecting(
 
             if int(check.iloc[i, 0]) == i:
                 d, z, pval, m, s, _len_from, _len_to, all_distances = calculate_proximity(
-                    network, nodes_from, nodes_to, sampling_eff, which_method=which_method
+                    network,
+                    nodes_from,
+                    nodes_to,
+                    sampling_eff,
+                    which_method=which_method,
+                    seed=seed,
                 )
                 
                 output.loc[i - b, :] = [
@@ -784,10 +810,8 @@ def score_drugs(
     p_vals = pd.to_numeric(candidate_drugs["p-value"], errors="coerce")
     selected = (z_vals <= z_score) & (p_vals <= p_value)
 
-    c = 0
     for drug_idx in range(len(drugs)):
         if selected.iloc[drug_idx]:
-            c += 1
             weights[drug_idx, 0] = weight_a_drug(network, drug_idx, dgi, drug_genes, ppi, disease_genes)
 
     return weights
@@ -806,8 +830,6 @@ def drug_scoring(
     dgi = read_csv(devi_data_dir() / "DtoGI_scores(filtered)")
     drug_genes = read_csv(devi_data_dir() / "DtoGI_ENSEMBL(filtered)")
     drugs = read_csv(devi_data_dir() / "drugs(filtered)")
-    pc_genes = read_csv(devi_data_dir() / "protein_coding_genes_ENSEMBL")
-
     ppi = read_csv(devi_data_dir() / "gene_gene_PPI700_ENSEMBL")
     if "max_ppi" in ppi.columns:
         ppi["max_ppi"] = ppi["max_ppi"] / 1000
@@ -892,10 +914,8 @@ def score_disease_genes(
     p_vals = pd.to_numeric(candidate_drugs["p-value"], errors="coerce")
     selected = (z_vals <= z_score) & (p_vals <= p_value)
 
-    c = 0
     for drug_idx in range(len(drugs)):
         if selected.iloc[drug_idx]:
-            c += 1
             for disease_idx in range(len(disease_genes)):
                 weights[drug_idx, disease_idx] = weight_a_drug_for_disease_gene(
                     network, drug_idx, disease_idx, ppi, drug_genes, disease_genes, dgi
@@ -917,6 +937,7 @@ def suggested_drugs_DEviRank(
     z_score: float = -1.96,
     chunk_size: int = DEFAULT_CHUNK_SIZE,
     max_drugs: Optional[int] = None,
+    seed: int = DEFAULT_SEED,
 ):
     """
     Full DEviRank pipeline:
@@ -931,11 +952,13 @@ def suggested_drugs_DEviRank(
         which_method="DEviRank",
         chunk_size=chunk_size,
         max_drugs=max_drugs,
-    )    
+        seed=seed,
+    )
     fill_rows_from_repeated_index(
         out_dir=out_dir,
         which_method="DEviRank",
         max_drugs=max_drugs,
+        seed=seed,
     )
 
     drug_scoring(disease_file, out_dir=out_dir, p_value=p_value, z_score=z_score, max_drugs=max_drugs)
@@ -948,6 +971,7 @@ def compare_DEviRank_Nbisdes(
     sampling_size: Optional[int] = None,
     chunk_size: int = DEFAULT_CHUNK_SIZE,
     max_drugs: Optional[int] = None,
+    seed: int = DEFAULT_SEED,
 ):
     """
     Runs DEviRank + Nbisdes and writes comparison table to out_dir/DEviRankVSNbisdes.csv
@@ -959,6 +983,7 @@ def compare_DEviRank_Nbisdes(
         which_method="DEviRank",
         chunk_size=chunk_size,
         max_drugs=max_drugs,
+        seed=seed,
     )
     calculate_proximity_collecting(
         disease_file,
