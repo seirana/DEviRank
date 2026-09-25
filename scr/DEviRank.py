@@ -958,7 +958,6 @@ def suggested_drugs_DEviRank(
         out_dir=out_dir,
         which_method="DEviRank",
         max_drugs=max_drugs,
-        seed=seed,
     )
 
     drug_scoring(disease_file, out_dir=out_dir, p_value=p_value, z_score=z_score, max_drugs=max_drugs)
@@ -992,6 +991,7 @@ def compare_DEviRank_Nbisdes(
         which_method="Nbisdes",
         chunk_size=chunk_size,
         max_drugs=max_drugs,
+        seed=seed,
     )
     fill_rows_from_repeated_index(
         out_dir=out_dir,
