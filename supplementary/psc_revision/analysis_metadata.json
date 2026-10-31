@@ -1,0 +1,175 @@
+{
+  "source_commit": "738c2af027605f4d8c2ea1c12106405429037aaf",
+  "samples": 100000,
+  "seed": 452456,
+  "rng": "numpy.random.Generator PCG64",
+  "python": "3.12.14",
+  "numpy": "2.3.5",
+  "pandas": "2.2.3",
+  "networkx": "3.7",
+  "penalties": [
+    100,
+    1000,
+    20000
+  ],
+  "path_lengths_edges": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "baseline_path_edges": 2,
+  "graph_nodes": 21857,
+  "graph_edges": 231641,
+  "self_loops": 12,
+  "repository_disease_genes": 54,
+  "disease_file": "data/psc_manuscript_targets.csv",
+  "protein_universe": "provided protein-coding list union PPI IDs; retain eligible isolates",
+  "normalization_denominator": "all eligible target entries, fixed across path limits",
+  "saved_denominator_mismatches": 0,
+  "supplement_disease_symbols": 54,
+  "max_finite_nearest_distance": 10,
+  "unreachable_nodes": 6136,
+  "observed_distance_mismatches": 29,
+  "unavailable_saved_drugs": [
+    "ATOVAQUONE",
+    "GLUCARPIDASE",
+    "KANAMYCIN A"
+  ],
+  "old_rank_vs_repository_rank_spearman": {
+    "1": 0.8261792925274508,
+    "2": 0.9999356478650512,
+    "3": 0.9323037323037324,
+    "4": 0.9098397599122212
+  },
+  "saved_summary": [
+    {
+      "samples": 1000,
+      "screened": 2871,
+      "evaluable": 2868,
+      "unavailable": 3,
+      "original_exploratory": 39,
+      "corrected_exploratory": 39,
+      "BH": 0,
+      "BY": 0,
+      "original_and_BH": 0,
+      "original_and_BY": 0,
+      "zero_original_p": 13
+    },
+    {
+      "samples": 10000,
+      "screened": 2871,
+      "evaluable": 2868,
+      "unavailable": 3,
+      "original_exploratory": 34,
+      "corrected_exploratory": 34,
+      "BH": 9,
+      "BY": 0,
+      "original_and_BH": 7,
+      "original_and_BY": 0,
+      "zero_original_p": 9
+    },
+    {
+      "samples": 100000,
+      "screened": 2871,
+      "evaluable": 2868,
+      "unavailable": 3,
+      "original_exploratory": 36,
+      "corrected_exploratory": 36,
+      "BH": 10,
+      "BY": 6,
+      "original_and_BH": 7,
+      "original_and_BY": 5,
+      "zero_original_p": 6
+    }
+  ],
+  "penalty_summary": [
+    {
+      "penalty": 100,
+      "evaluable": 2868,
+      "nominal_exploratory_count": 35,
+      "nominal_exploratory_jaccard_vs_20000": 1.0,
+      "BH_count": 11,
+      "BH_jaccard_vs_20000": 1.0,
+      "BY_count": 7,
+      "BY_jaccard_vs_20000": 1.0
+    },
+    {
+      "penalty": 1000,
+      "evaluable": 2868,
+      "nominal_exploratory_count": 35,
+      "nominal_exploratory_jaccard_vs_20000": 1.0,
+      "BH_count": 11,
+      "BH_jaccard_vs_20000": 1.0,
+      "BY_count": 7,
+      "BY_jaccard_vs_20000": 1.0
+    },
+    {
+      "penalty": 20000,
+      "evaluable": 2868,
+      "nominal_exploratory_count": 35,
+      "nominal_exploratory_jaccard_vs_20000": 1.0,
+      "BH_count": 11,
+      "BH_jaccard_vs_20000": 1.0,
+      "BY_count": 7,
+      "BY_jaccard_vs_20000": 1.0
+    }
+  ],
+  "path_summary": [
+    {
+      "path_length_edges": 1,
+      "n_drugs": 36,
+      "spearman_vs_L2": 0.8262324623503668,
+      "top10_overlap_vs_L2": 6,
+      "median_abs_rank_change": 5.0,
+      "maximum_abs_rank_change": 11.0,
+      "positive_scores": 36
+    },
+    {
+      "path_length_edges": 2,
+      "n_drugs": 36,
+      "spearman_vs_L2": 0.9999999999999998,
+      "top10_overlap_vs_L2": 10,
+      "median_abs_rank_change": 0.0,
+      "maximum_abs_rank_change": 0.0,
+      "positive_scores": 36
+    },
+    {
+      "path_length_edges": 3,
+      "n_drugs": 36,
+      "spearman_vs_L2": 0.93249244031179,
+      "top10_overlap_vs_L2": 9,
+      "median_abs_rank_change": 2.0,
+      "maximum_abs_rank_change": 11.0,
+      "positive_scores": 36
+    },
+    {
+      "path_length_edges": 4,
+      "n_drugs": 36,
+      "spearman_vs_L2": 0.9098983138113012,
+      "top10_overlap_vs_L2": 9,
+      "median_abs_rank_change": 2.0,
+      "maximum_abs_rank_change": 12.0,
+      "positive_scores": 36
+    }
+  ],
+  "complete_drug_universe": true,
+  "unique_target_profiles": 1890,
+  "elapsed_seconds": 26.332128772000033,
+  "input_sha256": {
+    "data/drugs(filtered).csv": "9c34abf7f24bd676690f514da133d08ad394653be50c6c5076ff2820555d331d",
+    "data/drugs_links.csv": "213445d4d5fbbec4bc89e501d4ec933230bf43504785c5052ac75eed81624d03",
+    "data/repeated(filtered).csv": "a3c249f4a9dc0c739695dba30870fcb2a06ccd60fb7a0f4a17787e045d932934",
+    "data/disease_target_genes.csv": "c2ddead32bf3f8d67e9addfd3205936147fe9e57f16fd365e631dbe5c409e13f",
+    "data/proteins.csv": "d3aefaed2ec30eaba77faece76145fefe23a48dc806b540ca18fb300bd006259",
+    "data/DtoGI_ENSEMBL(filtered).csv": "a2a75c9d2be8d25f3eca54e84382e3b2b321f85960d1b44fbe946c15fca32fdd",
+    "data/psc_manuscript_mapping_provenance.json": "13ca2ed7069682b9102dd687de1d50506d4b5742966a8c1cea2ed8fbeb1e982b",
+    "data/protein_coding_genes_ENSEMBL.csv": "5bb721fd778a88f28a4f0235207624615955d8ce0d76752982a35fa0517389a7",
+    "data/README.md": "22047f65ab26b649ab28f61b2ec16dd306ab92730070b837a3073537190beada",
+    "data/psc_manuscript_gene_mapping.csv": "2a6367ddb7fb6d51cc68cdaa5f354dbea2a8a7a311ca19af79f83dc6b0df6335",
+    "data/gene_gene_PPI700_ENSEMBL.csv": "3b23b5703df81e12e6bf6922d0bc350173d239a057584b5f57ad2b2a6f8c89d7",
+    "data/psc_manuscript_targets.csv": "fc8d178ffdac394a97d4ca761e06452a41dbb4a42b7a99ceeb64c582e670653e",
+    "data/DtoGI_scores(filtered).csv": "85cea2360c3d734996b3b7a41d128b982e2662f92ade69377a88396cb9988f56",
+    "supplementary/DEviRank-Supplementary tables.xlsx": "a422e6ff79217cfb187fd4715c63307ebd6771db4a7ceef848c8e8df8b9eda4c"
+  }
+}

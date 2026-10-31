@@ -28,6 +28,9 @@ def parse_args():
     p.add_argument("--p_value", default=0.05, type=float)
     p.add_argument("--z_score", default=-1.96, type=float)
     p.add_argument("--seed", default=DEFAULT_SEED, type=int)
+    p.add_argument("--disconnected_penalty", default=20000, type=float)
+    p.add_argument("--max_path_length", default=2, type=int,
+                   help="Maximum number of edges in a simple path (default 2)")
     return p.parse_args()
 
 
@@ -46,6 +49,8 @@ def main() -> int:
         p_value=args.p_value,
         z_score=args.z_score,
         seed=args.seed,
+        disconnected_penalty=args.disconnected_penalty,
+        max_path_length=args.max_path_length,
     )
 
     write_run_metadata(

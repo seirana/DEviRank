@@ -1,0 +1,11 @@
+{
+  "annotation_source": "https://github.com/stephenturner/annotables",
+  "annotation_commit": "405d30de78cb18aa3056ba91ef8125d038996994",
+  "ensembl_release": 116,
+  "annotation_file_sha256": "0b11eb19910674d8eaab0974b9f5cead682babea221a083b837340cb15883e7a",
+  "assembly_selection": "chr == 6; unique Ensembl gene IDs; all 54 supplied symbols map uniquely",
+  "protein_universe_nodes": 21857,
+  "remaining_distance_mismatches": 29,
+  "use": "Explicit independent reconstruction of the 54 supplied PSC symbols on the GRCh38 primary assembly. This declared reanalysis input does not replace or claim exact recovery of the historical saved statistics.",
+  "normalization": "All retained target entries in the archived protein universe; denominator fixed across path limits and independently verified for all 36 saved candidates."
+}

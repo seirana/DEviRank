@@ -1,0 +1,4 @@
+penalty,evaluable,nominal_exploratory_count,nominal_exploratory_jaccard_vs_20000,BH_count,BH_jaccard_vs_20000,BY_count,BY_jaccard_vs_20000
+100,2868,35,1.0,11,1.0,7,1.0
+1000,2868,35,1.0,11,1.0,7,1.0
+20000,2868,35,1.0,11,1.0,7,1.0

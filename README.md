@@ -1,6 +1,6 @@
 # DEviRank
 
-**Evidence-Weighted Drug Ranking via Network-Based Proximity Analysis**
+**DEviRank: Evidence-Weighted Network-Based Drug Ranking with a Case Study in Primary Sclerosing Cholangitis**
 
 DEviRank is a network-based drug-prioritization framework that ranks candidate drugs according to their network proximity to disease-associated genes in a protein-protein interaction (PPI) network. It combines bounded path-based network evidence with curated drug-gene interaction confidence scores and evaluates network proximity using degree-matched random sampling.
 
@@ -66,7 +66,7 @@ python -m pip install -e .
 For development and testing:
 
 ```bash
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[analysis,dev]"
 ```
 
 ## Inputs
@@ -197,7 +197,20 @@ DEviRank uses degree-matched random sampling to estimate a null distribution of 
 - target and disease-gene counts;
 - observed shortest-distance values.
 
-The current empirical p-value formula is preserved from the research implementation. This modernization does **not** silently change the published/statistical method.
+The PSC manuscript revision uses `(b + 1) / (B + 1)` for the lower-tail Monte Carlo p-value, counting ties. Empty tests have unavailable p-values. BH and BY are computed across the complete valid family before filtering. The original z-score plus nominal-p rule remains an exploratory ranking option and is not FDR-controlled.
+
+The reference cutoff is **two edges**, meaning at most three nodes. The CLI exposes `--max_path_length` (default 2) and `--disconnected_penalty` (default 20000).
+
+For the saved-result correction and the PSC-only sensitivity study:
+
+```bash
+python -m pip install -e ".[analysis]"
+python -m scr.psc_revision --samples 100000 --seed 452456 --output experiments/psc_revision
+```
+
+The runner uses `data/psc_manuscript_targets.csv`, an explicit reconstruction of the 54 supplied PSC symbols, with the archived protein universe. The original generic example file contains 71 identifiers and remains available separately. The reconstruction matches 2,839 of 2,868 saved distances and all 36 normalization denominators; 29 distances remain unresolved. Normalization uses all retained target entries, including zero-path targets, with a fixed denominator across path limits. See `PSC_REVISION.md` for the scientific scope, output map and provenance.
+
+The complete corrected tables, sensitivity results and input audit are deposited in [`supplementary/psc_revision/`](supplementary/psc_revision/). At 100,000 samples, the corrected saved screen gives 10 BH and six BY discoveries at 5%; the original 36-drug ranking remains exploratory. Fresh sensitivity calculations are recorded separately from the saved-screen correction.
 
 The sampling seed is now exposed as an explicit parameter so runs can be repeated exactly under the same software and input conditions.
 
@@ -242,7 +255,7 @@ DEviRank uses bounded path enumeration around drug targets and disease genes. Ru
 
 ## Research-software scope
 
-This repository is research software. The quality upgrade focuses on portability, testing, provenance, reproducibility, and maintainability while preserving the scientific scoring logic and default seed.
+This repository is research software. The PSC manuscript revision introduces explicitly documented statistical corrections and parameter controls alongside the portability, testing and provenance features.
 
 The repository does not claim that a ranked drug is clinically effective. Ranking results require biological interpretation and appropriate downstream validation.
 

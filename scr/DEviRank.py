@@ -164,7 +164,8 @@ def write_csv(
 # Core constants
 # ======================================================================================
 
-FINITE_INFINITY = 20000  # > longest path in gene network
+FINITE_INFINITY = 20000  # Default disconnected penalty; finite-distance bounds are checked in sensitivity runs.
+DEFAULT_MAX_PATH_LENGTH = 2  # edges; three vertices including both endpoints
 DEFAULT_SEED = 452456
 DEFAULT_MIN_BIN_SIZE = 100
 DEFAULT_CHUNK_SIZE = 10
@@ -218,28 +219,19 @@ def _genes_from_target_matrix(df: pd.DataFrame) -> pd.Series:
 
 def matrix_to_network_DEviRank() -> nx.Graph:
     """
-    DEviRank network:
-      - PPI edges from gene_gene_PPI700_ENSEMBL
-      - Nodes = union of:
-          (1) all protein-coding genes (pcg)
-          (2) all genes appearing in PPI (gene1, gene2)
-          (3) all genes appearing in DtoGI_ENSEMBL(filtered).csv (drug targets)
-    Missing genes are added as isolated nodes.
+    Eligible protein universe = supplied protein-coding list plus PPI IDs.
+    Isolated eligible proteins remain nodes. Target IDs outside this predefined
+    universe are not silently added; see PSC_REVISION.md for the input audit.
     """
     pcg = read_csv(devi_data_dir() / "protein_coding_genes_ENSEMBL")
     ppi = read_csv(devi_data_dir() / "gene_gene_PPI700_ENSEMBL")
-    dtogi = read_csv(devi_data_dir() / "DtoGI_ENSEMBL(filtered)")
-    disease = read_csv(devi_data_dir() / "disease_target_genes")
 
     if "Gene stable ID" not in pcg.columns:
         raise ValueError("protein_coding_genes_ENSEMBL must include column 'Gene stable ID'")
         
     genes_pcg = pcg["Gene stable ID"]
     genes_ppi = pd.concat([ppi["gene1"], ppi["gene2"]])
-    genes_dtogi = _genes_from_target_matrix(dtogi)
-    genes_disease = disease["ENSEMBL ID"]
-
-    all_genes = pd.concat([genes_pcg, genes_ppi, genes_dtogi, genes_disease]).drop_duplicates()
+    all_genes = pd.concat([genes_pcg, genes_ppi]).drop_duplicates()
 
     return _build_graph_from_ppi(ppi, include_all_genes=all_genes)
 
@@ -443,12 +435,15 @@ def get_random_nodes(
 # Proximity
 # ======================================================================================
 
-def calculate_closest_distance(network: nx.Graph, nodes_from: Iterable[str], nodes_to: Iterable[str]) -> list[int]:
+def calculate_closest_distance(network: nx.Graph, nodes_from: Iterable[str], nodes_to: Iterable[str], *, disconnected_penalty: float = FINITE_INFINITY) -> list[float]:
+    if not np.isfinite(disconnected_penalty) or disconnected_penalty <= 0:
+        raise ValueError("disconnected_penalty must be finite and positive")
     nodes_to = list(nodes_to)
     out = []
     for node_from in nodes_from:
         dists = [shortest_path_length(network, node_from, node_to) for node_to in nodes_to]
-        out.append(min(dists))
+        distance = min(dists)
+        out.append(disconnected_penalty if distance == FINITE_INFINITY else distance)
     return out
 
 
@@ -460,28 +455,29 @@ def calculate_proximity(
     which_method: str = "DEviRank",
     *,
     seed: int = DEFAULT_SEED,
+    disconnected_penalty: float = FINITE_INFINITY,
 ):
     if n_random <= 0:
         raise ValueError("n_random must be greater than 0")
 
-    if str(which_method) == "Nbisdes":
-        nodes_network = set(network.nodes())
-        nodes_from = set(nodes_from) & nodes_network
-        nodes_to = set(nodes_to) & nodes_network
+    # Eligibility is defined by the fixed network universe in either method.
+    nodes_network = set(network.nodes())
+    nodes_from = sorted(set(nodes_from) & nodes_network)
+    nodes_to = sorted(set(nodes_to) & nodes_network)
 
     if not nodes_from or not nodes_to:
         return (
             FINITE_INFINITY,
-            FINITE_INFINITY,
-            FINITE_INFINITY,
-            FINITE_INFINITY,
-            FINITE_INFINITY,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
             len(nodes_from),
             len(nodes_to),
             FINITE_INFINITY,
         )
 
-    shortest_distances = calculate_closest_distance(network, nodes_from, nodes_to)
+    shortest_distances = calculate_closest_distance(network, nodes_from, nodes_to, disconnected_penalty=disconnected_penalty)
     d = float(np.mean(shortest_distances))
     all_distances = [list(shortest_distances)]
 
@@ -500,10 +496,10 @@ def calculate_proximity(
 
     for i in range(n_random):
         frm = nodes_from_random[i] if not isinstance(nodes_from_random[i], int) else [nodes_from_random[i]]
-        dists = calculate_closest_distance(network, frm, nodes_to_fixed)
+        dists = calculate_closest_distance(network, frm, nodes_to_fixed, disconnected_penalty=disconnected_penalty)
         values[i] = float(np.mean(dists))
 
-    pval = float(np.sum(values <= d)) / len(values)
+    pval = float(np.count_nonzero(values <= d) + 1) / (len(values) + 1)
     m, s = float(np.mean(values)), float(np.std(values))
     z = 0.0 if s == 0 else (d - m) / s
 
@@ -519,6 +515,7 @@ def calculate_proximity_collecting(
     chunk_size: int = DEFAULT_CHUNK_SIZE,
     max_drugs: Optional[int] = None,
     seed: int = DEFAULT_SEED,
+    disconnected_penalty: float = FINITE_INFINITY,
 ):
     """
     Compute drug proximity scores against a disease gene set.
@@ -589,7 +586,8 @@ def calculate_proximity_collecting(
             nodes_from = list(drug_to_targets.iloc[i, ind])
             drug_name = drugs.loc[i, "drug_name"]
 
-            if int(check.iloc[i, 0]) == i:
+            representative = int(check.iloc[i, 0])
+            if representative == i or not 0 <= representative < n_drugs:
                 d, z, pval, m, s, _len_from, _len_to, all_distances = calculate_proximity(
                     network,
                     nodes_from,
@@ -597,6 +595,7 @@ def calculate_proximity_collecting(
                     sampling_eff,
                     which_method=which_method,
                     seed=seed,
+                    disconnected_penalty=disconnected_penalty,
                 )
                 
                 output.loc[i - b, :] = [
@@ -754,9 +753,17 @@ def sum_weight_all_paths_between_a_disease_gene_and_a_drug_gene(
     drug_gene: str,
     disease_gene: str,
     ppi: pd.DataFrame,
+    max_path_length: int = DEFAULT_MAX_PATH_LENGTH,
 ) -> float:
+    if max_path_length < 1:
+        raise ValueError("max_path_length must be a positive edge count")
+    if drug_gene not in network or disease_gene not in network:
+        return 0.0
+    if drug_gene == disease_gene:
+        # The empty path has product one, consistently across NetworkX versions.
+        return weight_a_disease_gene(network, disease_gene, ppi)
     weight = 0.0
-    for path in nx.all_simple_paths(network, source=drug_gene, target=disease_gene, cutoff=2):
+    for path in nx.all_simple_paths(network, source=drug_gene, target=disease_gene, cutoff=max_path_length):
         weight_path = 1.0
         for k in range(len(path) - 1):
             weight_path *= PPI_weight(path[k], path[k + 1], ppi)
@@ -771,6 +778,7 @@ def weight_a_drug(
     drug_genes: pd.DataFrame,
     ppi: pd.DataFrame,
     disease_genes: pd.DataFrame,
+    max_path_length: int = DEFAULT_MAX_PATH_LENGTH,
 ) -> float:
     total = 0.0
     clmns = [k for k, x in enumerate(drug_genes.iloc[drug_idx, :]) if x > 0]
@@ -780,9 +788,10 @@ def weight_a_drug(
         for j in range(len(disease_genes)):
             gene_weight += sum_weight_all_paths_between_a_disease_gene_and_a_drug_gene(
                 network,
-                str(drug_gene),
-                str(disease_genes.iloc[j, 0]),
+                drug_gene,
+                disease_genes.iloc[j, 0],
                 ppi,
+                max_path_length=max_path_length,
             )
         total += gene_weight * float(dgi.iloc[drug_idx, col_idx])
     return total
@@ -799,6 +808,7 @@ def score_drugs(
     *,
     p_value: float = 0.05,
     z_score: float = -1.96,
+    max_path_length: int = DEFAULT_MAX_PATH_LENGTH,
 ) -> np.ndarray:
     weights = np.zeros((len(drugs), 1), dtype=float)
 
@@ -808,7 +818,7 @@ def score_drugs(
 
     for drug_idx in range(len(drugs)):
         if selected.iloc[drug_idx]:
-            weights[drug_idx, 0] = weight_a_drug(network, drug_idx, dgi, drug_genes, ppi, disease_genes)
+            weights[drug_idx, 0] = weight_a_drug(network, drug_idx, dgi, drug_genes, ppi, disease_genes, max_path_length=max_path_length)
 
     return weights
 
@@ -820,6 +830,7 @@ def drug_scoring(
     p_value: float = 0.05,
     z_score: float = -1.96,
     max_drugs: Optional[int] = None,
+    max_path_length: int = DEFAULT_MAX_PATH_LENGTH,
 ):
     out_dir = _resolve_out_dir(out_dir)
 
@@ -844,7 +855,7 @@ def drug_scoring(
 
     scores = score_drugs(
         network, dgi, drug_genes, drugs, ppi, disease_genes, candidate_drugs,
-        p_value=p_value, z_score=z_score
+        p_value=p_value, z_score=z_score, max_path_length=max_path_length
     )
     scores_df = pd.DataFrame(scores, columns=["DEviRank_Drug_score"])
 
@@ -861,9 +872,16 @@ def sum_weight_all_paths_between_a_drug_gene_and_a_disease_gene(
     drug_gene: str,
     disease_gene: str,
     ppi: pd.DataFrame,
+    max_path_length: int = DEFAULT_MAX_PATH_LENGTH,
 ) -> float:
+    if max_path_length < 1:
+        raise ValueError("max_path_length must be a positive edge count")
+    if drug_gene not in network or disease_gene not in network:
+        return 0.0
+    if drug_gene == disease_gene:
+        return 1.0
     weight = 0.0
-    for path in nx.all_simple_paths(network, source=drug_gene, target=disease_gene, cutoff=2):
+    for path in nx.all_simple_paths(network, source=drug_gene, target=disease_gene, cutoff=max_path_length):
         weight_path = 1.0
         for k in range(len(path) - 1):
             weight_path *= PPI_weight(path[k], path[k + 1], ppi)
@@ -882,10 +900,10 @@ def weight_a_drug_for_disease_gene(
 ) -> float:
     total = 0.0
     clmns = [k for k, x in enumerate(drug_genes.iloc[drug_idx, :]) if x > 0]
-    disease_gene = str(disease_genes.iloc[disease_idx, 0])
+    disease_gene = disease_genes.iloc[disease_idx, 0]
 
     for col_idx in clmns:
-        drug_gene = str(drug_genes.iloc[drug_idx, col_idx])
+        drug_gene = drug_genes.iloc[drug_idx, col_idx]
         w = sum_weight_all_paths_between_a_drug_gene_and_a_disease_gene(network, drug_gene, disease_gene, ppi)
         total += w * float(dgi.iloc[drug_idx, col_idx])
 
@@ -924,6 +942,26 @@ def score_disease_genes(
 # Public entry points
 # ======================================================================================
 
+def add_fdr_columns(results: pd.DataFrame) -> pd.DataFrame:
+    """BH and BY on the complete valid family, before exploratory z filtering."""
+    out = results.copy()
+    p = pd.to_numeric(out["p-value"], errors="coerce").to_numpy(dtype=float)
+    valid = np.isfinite(p) & (p >= 0) & (p <= 1)
+    m = int(valid.sum())
+    out["test_status"] = np.where(valid, "evaluable", "unavailable")
+    for name, factor in [("p_BH", 1.0), ("p_BY", sum(1.0/i for i in range(1,m+1)))]:
+        adjusted = np.full(len(p), np.nan)
+        if m:
+            order = np.argsort(p[valid], kind="stable")
+            sorted_adjusted = p[valid][order] * m * factor / np.arange(1,m+1)
+            sorted_adjusted = np.minimum(1, np.minimum.accumulate(sorted_adjusted[::-1])[::-1])
+            inverse = np.empty(m)
+            inverse[order] = sorted_adjusted
+            adjusted[valid] = inverse
+        out[name] = adjusted
+    return out
+
+
 def suggested_drugs_DEviRank(
     disease_file: PathLike,
     *,
@@ -934,6 +972,8 @@ def suggested_drugs_DEviRank(
     chunk_size: int = DEFAULT_CHUNK_SIZE,
     max_drugs: Optional[int] = None,
     seed: int = DEFAULT_SEED,
+    disconnected_penalty: float = FINITE_INFINITY,
+    max_path_length: int = DEFAULT_MAX_PATH_LENGTH,
 ):
     """
     Full DEviRank pipeline:
@@ -949,6 +989,7 @@ def suggested_drugs_DEviRank(
         chunk_size=chunk_size,
         max_drugs=max_drugs,
         seed=seed,
+        disconnected_penalty=disconnected_penalty,
     )
     fill_rows_from_repeated_index(
         out_dir=out_dir,
@@ -956,7 +997,13 @@ def suggested_drugs_DEviRank(
         max_drugs=max_drugs,
     )
 
-    drug_scoring(disease_file, out_dir=out_dir, p_value=p_value, z_score=z_score, max_drugs=max_drugs)
+    # Corrected empirical p-values are already present; adjust the entire family.
+    result_file = _resolve_out_dir(out_dir) / "drug_scores_DEviRank.csv"
+    result = read_csv(result_file)
+    result = add_fdr_columns(result)
+    write_csv(result, result_file)
+    drug_scoring(disease_file, out_dir=out_dir, p_value=p_value, z_score=z_score,
+                 max_drugs=max_drugs, max_path_length=max_path_length)
 
 
 def compare_DEviRank_Nbisdes(
