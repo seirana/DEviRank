@@ -1,0 +1,5 @@
+path_length_edges,n_drugs,spearman_vs_L2,top10_overlap_vs_L2,median_abs_rank_change,maximum_abs_rank_change,positive_scores
+1,36,0.8262324623503668,6,5.0,11.0,36
+2,36,0.9999999999999998,10,0.0,0.0,36
+3,36,0.93249244031179,9,2.0,11.0,36
+4,36,0.9098983138113012,9,2.0,12.0,36

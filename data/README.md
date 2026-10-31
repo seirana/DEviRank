@@ -13,6 +13,9 @@ The files in this directory are the repository-local inputs used by the referenc
 | `repeated(filtered).csv` | Row-index mapping used to reuse results for repeated drug-target profiles. |
 | `drugs_links.csv` | Auxiliary drug-link table included with the research data. |
 | `proteins.csv` | Auxiliary protein table included with the research data. |
+| `psc_manuscript_targets.csv` | Explicit 54-identifier reconstruction of the manuscript PSC symbol list. Used by `scr.psc_revision`. |
+| `psc_manuscript_gene_mapping.csv` | All 54 supplied symbols and their primary-assembly Ensembl identifiers. |
+| `psc_manuscript_mapping_provenance.json` | Ensembl release, annotation source snapshot, checksum and reconstruction scope. |
 
 ## Alignment requirement
 

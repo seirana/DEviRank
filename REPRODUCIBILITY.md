@@ -83,4 +83,6 @@ Generated files under `experiments/` are intentionally ignored by Git. For a pub
 
 ## Statistical-method note
 
-The modernization work intentionally preserves the existing proximity, z-score, and empirical p-value calculations. Methodological changes should be introduced separately, documented explicitly, and compared against the reference implementation rather than being mixed into software-maintenance changes.
+The PSC revision uses a plus-one Monte Carlo p-value and adds full-family BH and BY adjustment. The reference cutoff is explicitly two edges. Both path cutoff and disconnected penalty are configurable. The saved ranking remains exploratory.
+
+Run `python -m scr.psc_revision` for the saved-result correction and reconstructed-input sensitivity tables. The default manuscript input is `data/psc_manuscript_targets.csv`, with 54 explicitly mapped identifiers. Eligibility uses the archived protein-coding list union PPI identifiers, retaining eligible isolates. Normalization uses all retained target entries, with the denominator fixed across path limits and checked against all 36 saved candidates. Saved and fresh results remain separate because 29 observed distances still differ. See `PSC_REVISION.md` for provenance and the output map.
